@@ -1,6 +1,5 @@
-'use client';
 import React, { useState } from 'react';
-import ListingCard from './components/ListingCard';
+import ListingCard from '../components/ListingCard';
 
 const IndexPage = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
