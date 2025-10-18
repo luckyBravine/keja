@@ -1,14 +1,17 @@
 'use client';
 import React, { useState } from 'react';
 import ListingCard from './components/ListingCard';
+import './global.css';
+
 
 const IndexPage = () => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const listings = Array.from({ length: 6 }, (_, i) => ({
     id: i + 1,
     title: `Property ${i + 1}`,
-    price: `$${(500 + i * 200).toFixed(2)}/mo`,
-    image: '/placeholder.jpg',
+    price: `Ksh${(5000 + i * 200).toFixed(2)}/mo`,
+    image: '/luxury-one.webp',
+    // image: i % 2 === 0 ? '/bedsitter-one.webp' : '/luxury-one.webp',// Use imported images as string URLs
   }));
 
   return (
@@ -47,8 +50,8 @@ const IndexPage = () => {
           <div className="mt-2 space-x-4">
             <select className="p-2 border rounded">
               <option>Price: Any</option>
-              <option>$0 - $500</option>
-              <option>$500 - $1000</option>
+              <option>Ksh0 - Ksh5000</option>
+              <option>Ksh5000 - Ksh10000</option>
             </select>
             <select className="p-2 border rounded">
               <option>Type: Any</option>

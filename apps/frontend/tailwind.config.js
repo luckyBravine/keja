@@ -14,10 +14,18 @@ module.exports = {
   content: [
     './{src,pages,components,app}/**/*.{ts,tsx,js,jsx,html}',
     '!./{src,pages,components,app}/**/*.{stories,spec}.{ts,tsx,js,jsx,html}',
-    //     ...createGlobPatternsForDependencies(__dirname)
+    './app/**/*.{js,ts,jsx,tsx}', // Include app/ directory
+    './components/**/*.{js,ts,jsx,tsx}', // Include components/ directory
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: '#1D4ED8', // Example blue
+        secondary: '#9333EA', // Example purple
+        accent: '#10B981', // Example green
+        neutral: '#F9FAFB', // Example light gray
+      },
+    },
   },
   plugins: [],
 };

@@ -9,8 +9,8 @@ const ListingDetails = () => {
   const listing = {
     id: id,
     title: 'Cozy Apartment',
-    price: '$500/mo',
-    image: '/placeholder.jpg',
+    price: 'Ksh5000/mo',
+    image: '/luxury-one.webp',
     description: 'A cozy 1-bedroom apartment in the heart of the city.',
     amenities: ['Wi-Fi', 'Parking', 'Gym'],
     availability: 'Available Now',
