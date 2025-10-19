@@ -1,0 +1,19 @@
+{
+  "name": "@keja/frontend-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/frontend-e2e/src",
+  "projectType": "application",
+  "targets": {
+    "e2e": {
+      "executor": "@nx/playwright:run",
+      "options": {
+        "project": "@keja/frontend-e2e"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  },
+  "tags": [],
+  "implicitDependencies": ["@keja/frontend"]
+}

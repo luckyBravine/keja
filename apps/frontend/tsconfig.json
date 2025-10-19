@@ -29,19 +29,19 @@
       "jest",
       "node"
     ],
-    "outDir": "dist",
+    "outDir": "../../dist/apps/frontend",
     "rootDir": "src",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
   },
   "include": [
-    "../../apps/frontend/.next/types/**/*.ts",
-    "../../dist/apps/frontend/.next/types/**/*.ts",
+    ".next/types/**/*.ts",
     "next-env.d.ts",
+    "src/**/*",
     "src/**/*.js",
     "src/**/*.jsx",
     "src/**/*.ts",
     "src/**/*.tsx",
-    ".next/types/**/*.ts"
+    "../../dist/apps/frontend/.next/types/**/*.ts"
   ],
   "exclude": [
     "out-tsc",
@@ -53,6 +53,7 @@
     ".next",
     "eslint.config.js",
     "eslint.config.cjs",
-    "eslint.config.mjs"
+    "eslint.config.mjs",
+    "../../dist"
   ]
 }

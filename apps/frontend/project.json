@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "@keja/frontend",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/frontend/src",
   "projectType": "application",
@@ -19,13 +19,13 @@
       "executor": "@nx/next:server",
       "options": {
         "dev": true,
-        "buildTarget": "frontend:build"
+        "buildTarget": "@keja/frontend:build"
       }
     },
     "dev": {
       "executor": "@nx/next:dev",
       "options": {
-        "buildTarget": "frontend:build"
+        "buildTarget": "@keja/frontend:build"
       }
     },
     "lint": {
