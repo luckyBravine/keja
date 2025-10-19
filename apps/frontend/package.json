@@ -7,6 +7,11 @@
     "react": "19.0.0",
     "react-dom": "19.0.0"
   },
+  "scripts": {
+  "build": "next build",
+  "dev": "next dev",
+  "start": "next start"
+},
   "devDependencies": {
     "autoprefixer": "^10.4.13",
     "postcss": "^8.4.38",

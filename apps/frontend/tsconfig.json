@@ -34,6 +34,7 @@
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
   },
   "include": [
+    "../../dist/apps/frontend/.next/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
     "src/**/*",
@@ -41,7 +42,7 @@
     "src/**/*.jsx",
     "src/**/*.ts",
     "src/**/*.tsx",
-    "../../dist/apps/frontend/.next/types/**/*.ts"
+    "../../apps/frontend/.next/.next/types/**/*.ts"
   ],
   "exclude": [
     "out-tsc",
