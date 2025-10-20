@@ -73,5 +73,14 @@
         "linter": "eslint"
       }
     }
+  },
+"tasksRunnerOptions": {
+  "default": {
+    "runner": "@vercel/remote-nx",
+    "options": {
+      "cacheableOperations": ["build", "lint", "test", "e2e"],
+      "token": "wNc4Y1YulAbJLbABN05sMsAD"
+    }
   }
+}
 }

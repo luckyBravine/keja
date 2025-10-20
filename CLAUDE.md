@@ -10,5 +10,5 @@
 - For questions around nx configuration, best practices or if you're unsure, use the `nx_docs` tool to get relevant, up-to-date docs. Always use this instead of assuming things about nx configuration
 - If the user needs help with an Nx configuration or project graph error, use the `nx_workspace` tool to get any errors
 
-
+wNc4Y1YulAbJLbABN05sMsAD
 <!-- nx configuration end-->
