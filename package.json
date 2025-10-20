@@ -4,6 +4,10 @@
   "license": "MIT",
   "scripts": {},
   "private": true,
+  "engines": {
+    "node": "^20.0.0 || >=20",
+    "npm": ">=9"
+  },
   "dependencies": {
     "next": "~15.2.4",
     "react": "19.0.0",
