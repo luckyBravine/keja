@@ -1,17 +1,11 @@
 {
   "version": 2,
-  "buildCommand": "npx nx build @keja/frontend",
+  "buildCommand": "npx nx build @keja/frontend --skip-nx-cache",
   "outputDirectory": "dist/apps/frontend/.next",
   "framework": "nextjs",
   "installCommand": "npm ci",
   "env": {
     "NX_SKIP_NX_CACHE": "true"
-  },
-  "functions": {
-    "api/**": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
   }
 }
 
