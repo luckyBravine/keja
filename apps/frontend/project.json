@@ -23,8 +23,9 @@
       }
     },
     "dev": {
-      "executor": "@nx/next:dev",
+      "executor": "@nx/next:server",
       "options": {
+        "dev": true,
         "buildTarget": "@keja/frontend:build"
       }
     },

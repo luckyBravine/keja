@@ -1,73 +1,124 @@
 'use client';
-import React, { useState } from 'react';
+import React from 'react';
 import ListingCard from './components/ListingCard';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import FilterBar from './components/FilterBar';
 import './global.css';
 
 
 const IndexPage = () => {
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const listings = Array.from({ length: 6 }, (_, i) => ({
-    id: i + 1,
-    title: `Property ${i + 1}`,
-    price: `Ksh${(5000 + i * 200).toFixed(2)}/mo`,
-    image: '/luxury-one.webp',
-    // image: i % 2 === 0 ? '/bedsitter-one.webp' : '/luxury-one.webp',// Use imported images as string URLs
-  }));
+  const allListings = Array.from({ length: 12 }, (_, i) => {
+    const types = ['Bedsitter', 'Singles', 'Apartment', 'Condo'];
+    const locations = ['Kibera, Nairobi', 'Kitengela, Kajiado', 'Mlolongo, Machakos'];
+    const type = types[i % types.length];
+    const location = locations[i % locations.length];
+    return {
+      id: i + 1,
+      title: type, // use type as title
+      price: 5000 + i * 500, // numeric Ksh for filtering/formatting
+      currency: 'Ksh',
+      image: '/luxury-one.webp',
+      type,
+      location,
+      beds: (i % 4) + 1,
+      baths: (i % 3) + 1,
+      sqft: 800 + i * 50,
+    };
+  });
+
+  const [location, setLocation] = React.useState('');
+  const [propertyType, setPropertyType] = React.useState('');
+  const [priceRange, setPriceRange] = React.useState('');
+
+  const filterByControls = React.useCallback(() => {
+    return allListings.filter((l) => {
+      const matchLocation = location ? l.location.toLowerCase().includes(location.toLowerCase()) : true;
+      const matchType = propertyType ? l.type === propertyType : true;
+      const matchPrice = (() => {
+        if (!priceRange) return true;
+        if (priceRange === '3000+') return l.price >= 3000;
+        const [minStr, maxStr] = priceRange.split('-');
+        const min = parseInt(minStr, 10);
+        const max = parseInt(maxStr, 10);
+        return l.price >= min && l.price <= max;
+      })();
+      return matchLocation && matchType && matchPrice;
+    });
+  }, [allListings, location, propertyType, priceRange]);
+
+  const listings = filterByControls();
 
   return (
-    <div className="min-h-screen bg-neutral">
-      {/* Navbar */}
-      <nav className="flex justify-between items-center p-4 bg-primary text-white">
-        <div className="text-2xl font-bold">Keja</div>
-        <div>
-          <button className="mr-4">Login</button>
-          <button className="bg-accent text-white px-4 py-2 rounded">Register</button>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-[#F6F9FF]">
+      <Navbar />
 
-      {/* Hero Section */}
-      <div className="text-center py-12 bg-gray-100">
-        <h1 className="text-4xl font-bold text-primary">Find Your Perfect Home</h1>
-        <div className="mt-4 flex justify-center">
-          <input
-            type="text"
-            placeholder="Search by location or keyword..."
-            className="p-2 w-1/2 border rounded"
-          />
-          <button className="ml-2 bg-secondary text-white px-4 py-2 rounded">Search</button>
+      {/* Hero */}
+      <section className="mx-auto max-w-7xl px-6 py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="space-y-8">
+            <div>
+              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+                Find Your Perfect Home <span className="text-blue-600">In 3 Clicks</span> 
+              </h1>
+              <p className="mt-6 text-xl text-gray-600 leading-relaxed max-w-2xl">
+                Discover thousands of verified rental properties in your desired location with our advanced search platform.
+              </p>
+            </div>
+            <div className="mt-8">
+              <FilterBar
+                location={location}
+                onLocationChange={setLocation}
+                propertyType={propertyType}
+                onPropertyTypeChange={setPropertyType}
+                priceRange={priceRange}
+                onPriceRangeChange={setPriceRange}
+                onSearch={() => { /* already filters live; could trigger analytics */ }}
+              />
+            </div>
+          </div>
+          <div className="relative">
+            <div className="rounded-2xl overflow-hidden shadow-2xl">
+              <img src="/luxury-one.webp" alt="hero" className="w-full h-96 lg:h-[500px] object-cover" />
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Filters */}
-      <div className="p-4">
-        <button
-          onClick={() => setFiltersOpen(!filtersOpen)}
-          className="bg-gray-200 px-4 py-2 rounded"
-        >
-          {filtersOpen ? 'Hide Filters' : 'Show Filters'}
-        </button>
-        {filtersOpen && (
-          <div className="mt-2 space-x-4">
-            <select className="p-2 border rounded">
-              <option>Price: Any</option>
-              <option>Ksh0 - Ksh5000</option>
-              <option>Ksh5000 - Ksh10000</option>
-            </select>
-            <select className="p-2 border rounded">
-              <option>Type: Any</option>
-              <option>Apartment</option>
-              <option>House</option>
+      {/* Available Rentals header */}
+      <section className="mx-auto max-w-7xl px-6 py-12">
+        <h2 className="text-4xl font-bold text-gray-900 mb-8">Available Rentals</h2>
+        <div className="flex flex-wrap items-center justify-between gap-6 mb-8">
+          <div className="flex items-center gap-3">
+            <button className="px-6 py-3 text-base font-medium rounded-full bg-blue-600 text-white">All Types</button>
+            <button className="px-6 py-3 text-base font-medium rounded-full bg-white border border-gray-300 hover:border-blue-600">Bedsitter</button>
+            <button className="px-6 py-3 text-base font-medium rounded-full bg-white border border-gray-300 hover:border-blue-600">Singles</button>
+            <button className="px-6 py-3 text-base font-medium rounded-full bg-white border border-gray-300 hover:border-blue-600">Apartments</button>
+            <button className="px-6 py-3 text-base font-medium rounded-full bg-white border border-gray-300 hover:border-blue-600">Condos</button>
+          </div>
+          <div className="flex items-center gap-4 text-lg text-gray-700">
+            <span className="font-medium">1,247 properties found</span>
+            <select className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-base font-medium">
+              <option>Sort by: Newest</option>
+              <option>Price: Low to High</option>
+              <option>Price: High to Low</option>
             </select>
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* Listings Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-        {listings.map((listing) => (
-          <ListingCard key={listing.id} {...listing} />
-        ))}
-      </div>
+        {/* Listings Grid */}
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {listings.map((listing) => (
+            <ListingCard key={listing.id} {...listing} />
+          ))}
+        </div>
+
+        <div className="flex justify-center mt-12">
+          <button className="px-8 py-4 text-lg font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">Load More Properties</button>
+        </div>
+      </section>
+
+      <Footer />
     </div>
   );
 };
