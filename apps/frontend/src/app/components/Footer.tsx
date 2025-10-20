@@ -40,7 +40,7 @@ const Footer: React.FC = () => {
           </ul>
         </div>
       </div>
-      <div className="mx-auto max-w-7xl px-6 pb-8 text-base text-gray-500">© 2024 RentHub. All rights reserved.</div>
+      <div className="mx-auto max-w-7xl px-6 pb-8 text-base text-gray-500">© 2024 Keja. All rights reserved.</div>
     </footer>
   );
 };
