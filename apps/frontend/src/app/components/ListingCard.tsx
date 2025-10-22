@@ -69,33 +69,33 @@ const ListingCard: React.FC<ListingCardProps> = ({ id, title, price, image, loca
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer">
       <div className="relative">
-        <img src={image} alt={title} className="w-full h-56 object-cover" />
-        <span className="absolute top-4 left-4 text-sm px-3 py-1 rounded-full bg-blue-600 text-white font-medium">Featured</span>
+        <img src={image} alt={title} className="w-full h-48 sm:h-56 md:h-64 object-cover" />
+        <span className="absolute top-3 left-3 sm:top-4 sm:left-4 text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full bg-blue-600 text-white font-medium">Featured</span>
         <button 
           onClick={handleLike}
-          className={`absolute top-4 right-4 h-10 w-10 rounded-full grid place-items-center transition-colors ${
+          className={`absolute top-3 right-3 sm:top-4 sm:right-4 h-8 w-8 sm:h-10 sm:w-10 rounded-full grid place-items-center transition-colors ${
             isLiked 
               ? 'bg-red-500 text-white hover:bg-red-600' 
               : 'bg-white/90 hover:bg-white'
           }`}
         >
-          <span className={`text-lg ${isLiked ? '❤️' : '🤍'}`}>
+          <span className={`text-sm sm:text-lg ${isLiked ? '❤️' : '🤍'}`}>
             {isLiked ? '❤️' : '🤍'}
           </span>
         </button>
       </div>
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="text-lg font-semibold text-gray-900 max-w-[70%] leading-tight">{title}</h3>
-          <span className="text-blue-600 font-bold text-lg">Ksh{String(price)}</span>
+      <div className="p-4 sm:p-5 md:p-6">
+        <div className="flex items-start justify-between mb-2 sm:mb-3">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900 max-w-[70%] leading-tight">{title}</h3>
+          <span className="text-blue-600 font-bold text-base sm:text-lg">Ksh{String(price)}</span>
         </div>
-        <p className="text-base text-gray-600 mb-4">{location ?? '—'}</p>
-        <div className="flex items-center gap-6 text-sm text-gray-600">
+        <p className="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">{location ?? '—'}</p>
+        <div className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-600">
           <span className="flex items-center gap-1"><span>🛏️</span><span className="font-medium">{beds ?? '-'} beds</span></span>
           <span className="flex items-center gap-1"><span>🛁</span><span className="font-medium">{baths ?? '-'} baths</span></span>
           <span className="flex items-center gap-1"><span>📐</span><span className="font-medium">{sqft ?? '-'} sqft</span></span>
         </div>
-        <Link href="/login" className="mt-5 w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition-colors block text-center">
+        <Link href="/login" className="mt-4 sm:mt-5 w-full bg-blue-600 text-white py-2 sm:py-2.5 rounded-lg text-sm sm:text-base font-semibold hover:bg-blue-700 transition-colors block text-center">
           Book Appointment
         </Link>
       </div>
