@@ -18,8 +18,18 @@ const LoginPage = () => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Demo login - check if user is a realtor
+    const userType = localStorage.getItem('userType') || 'user';
+    localStorage.setItem('isLoggedIn', 'true');
+    
+    if (userType === 'realtor') {
+      alert('Login successful! Redirecting to admin dashboard...');
+      router.push('/admin/dashboard');
+    } else {
     alert('Login successful! Redirecting to home...');
     router.push('/');
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,6 +45,7 @@ const LoginPage = () => {
         {/* Left Panel - Illustration */}
         <div className="hidden lg:flex lg:w-[45%] bg-gray-800 items-center justify-center p-6 lg:p-8">
           <div className="text-center">
+          {/* End of left panel content */}
             <div className="mb-6 lg:mb-8">
               <div className="w-32 h-32 lg:w-40 lg:h-40 mx-auto bg-gradient-to-br from-pink-400 to-purple-500 rounded-2xl flex items-center justify-center mb-6 lg:mb-8">
                 <div className="w-16 h-16 lg:w-20 lg:h-20 bg-white rounded-xl flex items-center justify-center">
@@ -49,8 +60,8 @@ const LoginPage = () => {
 
         {/* Right Panel - Login Form */}
         <div className="w-full lg:w-[55%] flex items-center justify-center p-4 sm:p-6 lg:p-8">
-          <div className="w-full max-w-lg lg:max-w-2xl">
-            <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-12 lg:p-16">
+          <div className="w-full max-w-md lg:max-w-lg">
+            <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 lg:p-10">
               {/* Header */}
               <div className="text-center mb-6 sm:mb-8 lg:mb-10">
                 <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -72,15 +83,15 @@ const LoginPage = () => {
                     <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
                       <span className="text-gray-400 text-base sm:text-lg lg:text-xl"><CiMail /></span>
                     </div>
-                    <input
-                      type="email"
+          <input
+            type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
                       placeholder="john.doe@example.com"
                       className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 text-sm sm:text-base lg:text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    />
+            required
+          />
                   </div>
                 </div>
 
@@ -94,15 +105,15 @@ const LoginPage = () => {
                     <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
                       <span className="text-gray-400 text-base sm:text-lg lg:text-xl"><RiLockPasswordFill /></span>
                     </div>
-                    <input
-                      type="password"
+          <input
+            type="password"
                       name="password"
                       value={formData.password}
                       onChange={handleInputChange}
                       placeholder="••••••••"
                       className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 text-sm sm:text-base lg:text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    />
+            required
+          />
                   </div>
                 </div>
 
@@ -111,9 +122,9 @@ const LoginPage = () => {
                   type="submit"
                   className="w-full bg-blue-600 text-white py-3 sm:py-4 text-sm sm:text-base lg:text-xl rounded-xl font-semibold hover:bg-blue-700 transition-colors"
                 >
-                  Login
-                </button>
-              </form>
+            Login
+          </button>
+        </form>
 
               {/* Divider */}
               <div className="my-6 sm:my-8">
@@ -155,6 +166,7 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };

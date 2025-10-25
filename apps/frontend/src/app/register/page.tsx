@@ -17,7 +17,8 @@ const RegisterPage = () => {
     fullName: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    userType: 'user' // 'user' or 'realtor'
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -26,8 +27,18 @@ const RegisterPage = () => {
       alert('Passwords do not match!');
       return;
     }
-    alert('Registration successful! Redirecting to login...');
-    router.push('/login');
+    
+    // Store user type in localStorage for demo purposes
+    localStorage.setItem('userType', formData.userType);
+    localStorage.setItem('isLoggedIn', 'true');
+    
+    if (formData.userType === 'realtor') {
+      alert('Registration successful! Redirecting to admin dashboard...');
+      router.push('/admin/dashboard');
+    } else {
+      alert('Registration successful! Redirecting to login...');
+      router.push('/login');
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,8 +68,8 @@ const RegisterPage = () => {
 
         {/* Right Panel - Register Form */}
         <div className="w-full lg:w-[55%] flex items-center justify-center p-4 sm:p-6 lg:p-8">
-          <div className="w-full max-w-lg lg:max-w-2xl">
-            <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-12 lg:p-16">
+          <div className="w-full max-w-md lg:max-w-lg">
+            <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 lg:p-10">
               {/* Header */}
               <div className="text-center mb-6 sm:mb-8 lg:mb-10">
                 <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -80,15 +91,15 @@ const RegisterPage = () => {
                     <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
                       <span className="text-gray-400 text-base sm:text-lg lg:text-xl"><CgProfile /></span>
                     </div>
-                    <input
-                      type="text"
+          <input
+            type="text"
                       name="fullName"
                       value={formData.fullName}
                       onChange={handleInputChange}
                       placeholder="John Doe"
                       className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 text-sm sm:text-base lg:text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    />
+            required
+          />
                   </div>
                 </div>
 
@@ -99,8 +110,8 @@ const RegisterPage = () => {
                     <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
                       <span className="text-gray-400 text-base sm:text-lg lg:text-xl"><CiMail /></span>
                     </div>
-                    <input
-                      type="email"
+          <input
+            type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
@@ -108,6 +119,51 @@ const RegisterPage = () => {
                       className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 text-sm sm:text-base lg:text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       required
                     />
+                  </div>
+                </div>
+
+                {/* User Type Field */}
+                <div>
+                  <label className="block text-sm sm:text-base lg:text-lg font-semibold text-gray-700 mb-2 sm:mb-3">Account Type</label>
+                  <div className="space-y-3">
+                    <label className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
+                      formData.userType === 'user' 
+                        ? 'border-blue-500 bg-blue-50' 
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="userType"
+                        value="user"
+                        checked={formData.userType === 'user'}
+                        onChange={handleInputChange}
+                        className="sr-only"
+                      />
+                      <span className="text-xl">👤</span>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900 text-sm">Regular User</p>
+                        <p className="text-xs text-gray-600">Browse and book properties</p>
+                      </div>
+                    </label>
+                    <label className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
+                      formData.userType === 'realtor' 
+                        ? 'border-blue-500 bg-blue-50' 
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="userType"
+                        value="realtor"
+                        checked={formData.userType === 'realtor'}
+                        onChange={handleInputChange}
+                        className="sr-only"
+                      />
+                      <span className="text-xl">🏠</span>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900 text-sm">Realtor</p>
+                        <p className="text-xs text-gray-600">Manage properties & clients</p>
+                      </div>
+                    </label>
                   </div>
                 </div>
 
@@ -125,8 +181,8 @@ const RegisterPage = () => {
                       onChange={handleInputChange}
                       placeholder="••••••••"
                       className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 text-sm sm:text-base lg:text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      required
-                    />
+            required
+          />
                   </div>
                 </div>
 
@@ -138,15 +194,15 @@ const RegisterPage = () => {
                       <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
                         <span className="text-gray-400 text-base sm:text-lg lg:text-xl"><RiLockPasswordFill /></span>
                       </div>
-                      <input
-                        type="password"
+          <input
+            type="password"
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleInputChange}
                         placeholder="••••••••"
                         className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 text-sm sm:text-base lg:text-lg border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        required
-                      />
+            required
+          />
                     </div>
                   </div>
                 )}
@@ -157,8 +213,8 @@ const RegisterPage = () => {
                   className="w-full bg-blue-600 text-white py-3 sm:py-4 text-sm sm:text-base lg:text-xl rounded-xl font-semibold hover:bg-blue-700 transition-colors"
                 >
                   Create Account
-                </button>
-              </form>
+          </button>
+        </form>
 
               {/* Divider */}
               <div className="my-6 sm:my-8">
@@ -191,13 +247,14 @@ const RegisterPage = () => {
               {/* Footer */}
               <div className="text-center">
                 <p className="text-sm sm:text-base lg:text-lg text-gray-600">
-                  Already have an account?{' '}
+          Already have an account?{' '}
                   <Link href="/login" className="text-blue-600 hover:text-blue-800 font-semibold">
                     Sign In
                   </Link>
-                </p>
+        </p>
               </div>
           </div>
+        </div>
         </div>
       </div>
     </div>
