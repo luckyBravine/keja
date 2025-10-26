@@ -1,13 +1,13 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-
-from listings.views import ListingView
-
+from .views import UserViewSet
 
 router = DefaultRouter()
-
-router.register(r'listings', ListingViewSet, basename='listings')
+router.register(r'users', UserViewSet)
 
 urlpatterns = [
-        path('', include(router.urls)),
-        ]
+    path(
+          '',
+          include(router.urls)
+    ),
+]

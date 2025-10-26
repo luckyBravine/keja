@@ -1,5 +1,4 @@
 from django.db import models
-from rest_framework.permissions import BasePermission
 
 from django.contrib.auth.models import (
         AbstractBaseUser,
@@ -22,7 +21,7 @@ class UserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(
                 email=email,
-                first_name=first_name
+                first_name=first_name,
                 last_name=last_name,
                 **extra_fields
                 )
@@ -53,9 +52,18 @@ class UserManager(BaseUserManager):
         return superuser
 
 
-class IsAdminOrReadOnly(BasePermission):
-    """Allows read only permissions to non-admin users"""
-    def has_permission(self, request, view):
-        if request.method in ['GET', 'HEAD', 'OPTIONS']:
-            return True
-        return request.user and request.user.is_staff
+class User(AbstractBaseUser, PermissionsMixin):
+    """Custom user model"""
+    email = models.EmailField(unique=True)
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=30)
+    phone_number = models.CharField(max_length=1, null=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    objects = UserManager()
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name']

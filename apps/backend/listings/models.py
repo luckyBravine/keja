@@ -1,7 +1,7 @@
 from django.db import models
 
 
-AVAILABILITY_CHOICE = [
+AVAILABILITY_CHOICES = [
         ('ready_for_occupancy', 'Ready To Occupy'),
         ('pending', 'Pending'),
         ('occupied', 'Occupied')
@@ -16,14 +16,13 @@ class Listing(models.Model):
     building_name = models.CharField(max_length=10)
     house_size = models.CharField(max_length=80)
     house_rent = models.IntegerField(default=0)
-    contact_info = models.CharField(maxlength=40)
-    amenities = models.CharField(maxlength=255)
+    contact_info = models.CharField(max_length=40)
+    amenities = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     availability = models.CharField(
             max_length=100,
-            choices=AVAILABILITY_CHOICES,
-            unique=True
+            choices=AVAILABILITY_CHOICES
             )
 
     def __str__(self):
