@@ -27,8 +27,8 @@ const LoginPage = () => {
       alert('Login successful! Redirecting to admin dashboard...');
       router.push('/admin/dashboard');
     } else {
-    alert('Login successful! Redirecting to home...');
-    router.push('/');
+      alert('Login successful! Redirecting to dashboard...');
+      router.push('/dashboard');
     }
   };
 
@@ -41,7 +41,7 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-6xl grid lg:grid-cols-[45%_55%] gap-0 bg-white rounded-3xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-7xl grid lg:grid-cols-[40%_60%] gap-0 bg-white rounded-3xl shadow-2xl overflow-hidden">
         {/* Left Panel - Illustration */}
         <div className="hidden lg:flex lg:w-[45%] bg-gray-800 items-center justify-center p-6 lg:p-8">
           <div className="text-center">
@@ -60,8 +60,8 @@ const LoginPage = () => {
 
         {/* Right Panel - Login Form */}
         <div className="w-full lg:w-[55%] flex items-center justify-center p-4 sm:p-6 lg:p-8">
-          <div className="w-full max-w-md lg:max-w-lg">
-            <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 lg:p-10">
+          <div className="w-full max-w-lg">
+            <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 lg:p-12">
               {/* Header */}
               <div className="text-center mb-6 sm:mb-8 lg:mb-10">
                 <div className="flex items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -166,7 +166,7 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
     </div>
   );
 };

@@ -14,11 +14,11 @@ const IndexPage = () => {
     const type = types[i % types.length];
     const location = locations[i % locations.length];
     return {
-      id: i + 1,
+    id: i + 1,
       title: type, // use type as title
       price: 5000 + i * 500, // numeric Ksh for filtering/formatting
       currency: 'Ksh',
-      image: '/luxury-one.webp',
+    image: '/luxury-one.webp',
       type,
       location,
       beds: (i % 4) + 1,
@@ -57,14 +57,14 @@ const IndexPage = () => {
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center">
           <div className="space-y-6 sm:space-y-8">
-            <div>
+        <div>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-900 leading-tight">
                 Find Your Perfect Home <span className="text-blue-600">In 3 Clicks</span> 
               </h1>
               <p className="mt-4 sm:mt-6 text-base sm:text-lg lg:text-xl text-gray-600 leading-relaxed max-w-2xl">
                 Discover thousands of verified rental properties in your desired location with our advanced search platform.
               </p>
-            </div>
+        </div>
             <div className="mt-6 sm:mt-8">
               <FilterBar
                 location={location}
@@ -95,7 +95,7 @@ const IndexPage = () => {
             <button className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium rounded-full bg-white border border-gray-300 hover:border-blue-600">Singles</button>
             <button className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium rounded-full bg-white border border-gray-300 hover:border-blue-600">Apartments</button>
             <button className="px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium rounded-full bg-white border border-gray-300 hover:border-blue-600">Condos</button>
-          </div>
+      </div>
           <div className="flex items-center gap-2 sm:gap-4 text-sm sm:text-base lg:text-lg text-gray-700">
             <span className="font-medium text-xs sm:text-sm lg:text-base">1,247 properties found</span>
             <select className="bg-white border border-gray-300 rounded-lg px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm lg:text-base font-medium">
@@ -104,14 +104,14 @@ const IndexPage = () => {
               <option>Price: High to Low</option>
             </select>
           </div>
-        </div>
+      </div>
 
-        {/* Listings Grid */}
+      {/* Listings Grid */}
         <div className="mt-4 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-          {listings.map((listing) => (
-            <ListingCard key={listing.id} {...listing} />
-          ))}
-        </div>
+        {listings.map((listing) => (
+          <ListingCard key={listing.id} {...listing} />
+        ))}
+      </div>
 
         <div className="flex justify-center mt-8 sm:mt-12">
           <button className="px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base lg:text-lg font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">Load More Properties</button>
