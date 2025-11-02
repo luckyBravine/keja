@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import AppointmentForm from '@/app/components/AppointmentForm';
 
 const UserListings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'popular' | 'new' | 'bookmarked'>('bookmarked');
@@ -37,9 +38,21 @@ const UserListings: React.FC = () => {
     setShowDetails(true);
   };
 
-  const handleBookAppointment = () => {
-    setShowDetails(false);
-    router.push('/dashboard/appointments');
+  const [showAppointmentForm, setShowAppointmentForm] = useState(false);
+  const [appointmentData, setAppointmentData] = useState<{realtorName: string; propertyAddress: string} | null>(null);
+
+  const handleBookAppointment = (listing?: any) => {
+    if (listing) {
+      setAppointmentData({
+        realtorName: listing.realtor.name,
+        propertyAddress: listing.address
+      });
+      setShowDetails(false);
+      setShowAppointmentForm(true);
+    } else {
+      setShowDetails(false);
+      router.push('/dashboard/appointments');
+    }
   };
 
   return (
@@ -292,13 +305,38 @@ const UserListings: React.FC = () => {
                     <span className="font-medium">{selectedListing.realtor.phone}</span>
                   </div>
                   <button 
-                    onClick={handleBookAppointment}
+                    onClick={() => handleBookAppointment(selectedListing)}
                     className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-sm"
                   >
                     Book Appointment
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Appointment Form Modal */}
+      {showAppointmentForm && appointmentData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <AppointmentForm
+                mode="user"
+                realtorName={appointmentData.realtorName}
+                propertyAddress={appointmentData.propertyAddress}
+                onSubmit={(data) => {
+                  console.log('Appointment booked:', data);
+                  setShowAppointmentForm(false);
+                  setAppointmentData(null);
+                  router.push('/dashboard/appointments');
+                }}
+                onClose={() => {
+                  setShowAppointmentForm(false);
+                  setAppointmentData(null);
+                }}
+              />
             </div>
           </div>
         </div>

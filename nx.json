@@ -15,7 +15,6 @@
     ],
     "sharedGlobals": []
   },
-
   "plugins": [
     {
       "plugin": "@nx/js/typescript",
@@ -63,7 +62,17 @@
   ],
   "targetDefaults": {
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "cache": true
+    },
+    "build": {
+      "cache": true
+    },
+    "lint": {
+      "cache": true
+    },
+    "e2e": {
+      "cache": true
     }
   },
   "generators": {
@@ -73,14 +82,5 @@
         "linter": "eslint"
       }
     }
-  },
-"tasksRunnerOptions": {
-  "default": {
-    "runner": "@vercel/remote-nx",
-    "options": {
-      "cacheableOperations": ["build", "lint", "test", "e2e"],
-      "token": "wNc4Y1YulAbJLbABN05sMsAD"
-    }
   }
-}
 }

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 interface ListingCardProps {
@@ -69,7 +70,13 @@ const ListingCard: React.FC<ListingCardProps> = ({ id, title, price, image, loca
   return (
     <div className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer">
       <div className="relative">
-        <img src={image} alt={title} className="w-full h-48 sm:h-56 md:h-64 object-cover" />
+        <Image 
+          src={image} 
+          alt={`${title} property in ${location}`} 
+          width={400}
+          height={256}
+          className="w-full h-48 sm:h-56 md:h-64 object-cover"
+        />
         <span className="absolute top-3 left-3 sm:top-4 sm:left-4 text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full bg-blue-600 text-white font-medium">Featured</span>
         <button 
           onClick={handleLike}

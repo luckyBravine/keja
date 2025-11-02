@@ -1,14 +1,15 @@
 'use client';
 import React, { useState } from 'react';
+import AppointmentForm from '@/app/components/AppointmentForm';
 
 const AdminAppointments: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState('18');
   const [newTimeSlot, setNewTimeSlot] = useState('');
-
-  const upcomingAppointments = [
+  const [showForm, setShowForm] = useState(false);
+  const [upcomingAppointments, setUpcomingAppointments] = useState([
     { id: 1, client: 'Alice Johnson', property: '123 Ocean View Dr', date: '2024-01-10', time: '10:00 AM' },
     { id: 2, client: 'Bob Williams', property: '789 Elm Street', date: '2024-01-11', time: '02:30 PM' }
-  ];
+  ]);
 
   const availableSlots = {
     'Mon': ['09:00 AM', '11:00 AM', '02:00 PM'],
@@ -27,12 +28,33 @@ const AdminAppointments: React.FC = () => {
     }
   };
 
+  const handleAppointmentSubmit = (appointmentData: any) => {
+    const newAppointment = {
+      id: Date.now(),
+      client: appointmentData.clientName,
+      property: appointmentData.propertyAddress,
+      date: appointmentData.date,
+      time: appointmentData.time
+    };
+    setUpcomingAppointments([...upcomingAppointments, newAppointment]);
+    setShowForm(false);
+  };
+
   return (
-    <div className="space-y-8">
+    <>
+      <div className="space-y-8">
         {/* Page Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Appointments Management</h1>
-          <p className="mt-2 text-gray-600">Manage your property viewing appointments and available time slots.</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Appointments Management</h1>
+            <p className="mt-2 text-gray-600">Manage your property viewing appointments and available time slots.</p>
+          </div>
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+          >
+            Schedule New Appointment
+          </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -89,18 +111,22 @@ const AdminAppointments: React.FC = () => {
                 <h2 className="text-lg font-semibold text-gray-900">Upcoming Appointments</h2>
               </div>
               
-              <div className="space-y-4">
-                {upcomingAppointments.map((appointment) => (
-                  <div key={appointment.id} className="p-4 bg-gray-50 rounded-lg">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <p className="font-medium text-gray-900">{appointment.client}</p>
-                        <p className="text-sm text-gray-600">{appointment.property}</p>
-                        <p className="text-xs text-gray-500">{appointment.date}, {appointment.time}</p>
+              <div className="space-y-4 max-h-64 overflow-y-auto">
+                {upcomingAppointments.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-4">No upcoming appointments.</p>
+                ) : (
+                  upcomingAppointments.map((appointment) => (
+                    <div key={appointment.id} className="p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-medium text-gray-900">{appointment.client}</p>
+                          <p className="text-sm text-gray-600">{appointment.property}</p>
+                          <p className="text-xs text-gray-500">{appointment.date}, {appointment.time}</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -111,7 +137,7 @@ const AdminAppointments: React.FC = () => {
                 <h2 className="text-lg font-semibold text-gray-900">Set Available Time Slots</h2>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-64 overflow-y-auto">
                 {Object.entries(availableSlots).map(([day, slots]) => (
                   <div key={day}>
                     <p className="text-sm font-medium text-gray-700 mb-2">{day}</p>
@@ -151,6 +177,22 @@ const AdminAppointments: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Appointment Form Modal */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <AppointmentForm
+                mode="admin"
+                onSubmit={handleAppointmentSubmit}
+                onClose={() => setShowForm(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

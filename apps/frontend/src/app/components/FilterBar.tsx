@@ -12,9 +12,10 @@ interface FilterBarProps {
   priceRange: string;
   onPriceRangeChange: (v: string) => void;
   onSearch?: () => void;
+  isLoading?: boolean;
 }
 
-const FilterBar: React.FC<FilterBarProps> = ({ location, onLocationChange, propertyType, onPropertyTypeChange, priceRange, onPriceRangeChange, onSearch }) => {
+const FilterBar: React.FC<FilterBarProps> = ({ location, onLocationChange, propertyType, onPropertyTypeChange, priceRange, onPriceRangeChange, onSearch, isLoading = false }) => {
   return (
     <div className="flex flex-col sm:flex-row items-stretch gap-3 sm:gap-4">
       <div className="flex items-center gap-2 sm:gap-3 bg-white border border-gray-300 rounded-lg px-3 sm:px-4 py-2 sm:py-3 min-w-0 sm:min-w-[200px]">
@@ -35,7 +36,20 @@ const FilterBar: React.FC<FilterBarProps> = ({ location, onLocationChange, prope
         <option value="2000-3000">2000 - 3000</option>
         <option value="3000+">3000+</option>
       </select>
-      <button onClick={onSearch} className="bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-sm sm:text-base font-semibold hover:bg-blue-700 transition-colors">Search</button>
+      <button 
+        onClick={onSearch} 
+        disabled={isLoading}
+        className="bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg text-sm sm:text-base font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      >
+        {isLoading ? (
+          <>
+            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+            Searching...
+          </>
+        ) : (
+          'Search'
+        )}
+      </button>
     </div>
   );
 };

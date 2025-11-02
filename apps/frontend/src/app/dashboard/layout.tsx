@@ -41,10 +41,10 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:h-screen flex flex-col`}>
+      } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:h-screen flex flex-col overflow-y-hidden`}>
         
         {/* Logo */}
-        <div className="flex items-center justify-center h-16 px-4 bg-blue-600 border-b border-gray-200">
+        <div className="flex items-center justify-center h-16 px-4 bg-blue-600 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
               <span className="text-blue-600 font-bold text-lg">K</span>
@@ -54,7 +54,7 @@ export default function DashboardLayout({
         </div>
         
         {/* Navigation */}
-        <nav className="mt-8 px-4 flex-1">
+        <nav className="mt-8 px-4 flex-1 overflow-y-hidden">
           {navigation.map((item) => (
             <Link
               key={item.name}
@@ -73,7 +73,7 @@ export default function DashboardLayout({
         </nav>
 
         {/* Logout */}
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200 flex-shrink-0">
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-red-50 hover:text-red-600 w-full"
