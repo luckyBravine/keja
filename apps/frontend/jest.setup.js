@@ -1,4 +1,5 @@
 require('@testing-library/jest-dom')
+require('resize-observer-polyfill')
 
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {
@@ -8,13 +9,32 @@ global.IntersectionObserver = class IntersectionObserver {
   unobserve() {}
 }
 
-// Mock ResizeObserver
+// Mock ResizeObserver with polyfill
 global.ResizeObserver = class ResizeObserver {
   constructor() {}
   disconnect() {}
   observe() {}
   unobserve() {}
 }
+
+// Setup viewport dimensions for testing
+Object.defineProperty(window, 'innerWidth', {
+  writable: true,
+  configurable: true,
+  value: 1024,
+})
+
+Object.defineProperty(window, 'innerHeight', {
+  writable: true,
+  configurable: true,
+  value: 768,
+})
+
+Object.defineProperty(window, 'devicePixelRatio', {
+  writable: true,
+  configurable: true,
+  value: 1,
+})
 
 // Mock PerformanceObserver for PerformanceMonitor component
 global.PerformanceObserver = class PerformanceObserver {

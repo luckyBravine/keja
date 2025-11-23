@@ -23,8 +23,8 @@ jest.mock('../components/Footer', () => {
 });
 
 jest.mock('../components/ListingCard', () => {
-  return function MockListingCard({ title, price }: any) {
-    return <div data-testid="listing-card">{title} - Ksh{price}</div>;
+  return function MockListingCard({ title, price, id }: any) {
+    return <div data-testid="listing-card" key={id}>{title} - Ksh{price}</div>;
   };
 });
 

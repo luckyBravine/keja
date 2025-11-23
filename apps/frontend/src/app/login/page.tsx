@@ -85,12 +85,13 @@ const LoginPage = () => {
             <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
               {/* Email Field */}
               <div>
-                <label className="block text-sm sm:text-base lg:text-lg font-semibold text-gray-700 mb-2 sm:mb-3">Email / Username</label>
+                <label htmlFor="email" className="block text-sm sm:text-base lg:text-lg font-semibold text-gray-700 mb-2 sm:mb-3">Email / Username</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 sm:pl-4 flex items-center pointer-events-none">
                     <span className="text-gray-400 text-base sm:text-lg lg:text-xl"><CiMail /></span>
                   </div>
                   <input
+                    id="email"
                     type="email"
                     name="email"
                     value={formData.email}
@@ -105,7 +106,7 @@ const LoginPage = () => {
               {/* Password Field */}
               <div>
                 <div className="flex justify-between items-center mb-2 sm:mb-3">
-                  <label className="block text-sm sm:text-base lg:text-lg font-semibold text-gray-700">Password</label>
+                  <label htmlFor="password" className="block text-sm sm:text-base lg:text-lg font-semibold text-gray-700">Password</label>
                   <Link href="#" className="text-sm sm:text-base lg:text-lg text-blue-600 hover:text-blue-800">Forgot Password?</Link>
                 </div>
                 <div className="relative">
@@ -113,6 +114,7 @@ const LoginPage = () => {
                     <span className="text-gray-400 text-base sm:text-lg lg:text-xl"><RiLockPasswordFill /></span>
                   </div>
                   <input
+                    id="password"
                     type="password"
                     name="password"
                     value={formData.password}

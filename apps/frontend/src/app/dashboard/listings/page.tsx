@@ -64,9 +64,32 @@ const UserListings: React.FC = () => {
           <p className="mt-2 text-gray-600">Explore available properties in your area.</p>
         </div>
 
-        {/* Filters in One Line */}
+        {/* Filters - Responsive */}
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-          <div className="flex items-center gap-3">
+          {/* Mobile: Dropdown Menu */}
+          <div className="md:hidden">
+            <select
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value as 'popular' | 'new' | 'bookmarked')}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm font-semibold bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-3"
+            >
+              <option value="popular">Popular</option>
+              <option value="new">New</option>
+              <option value="bookmarked">Bookmarked</option>
+            </select>
+            <select
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm font-semibold bg-white text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {locations.map((loc) => (
+                <option key={loc.value} value={loc.value}>{loc.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Desktop: Horizontal Buttons */}
+          <div className="hidden md:flex items-center gap-3">
             <button
               onClick={() => setActiveTab('popular')}
               className={`px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors ${
@@ -111,13 +134,13 @@ const UserListings: React.FC = () => {
         </div>
 
         {/* Content Grid */}
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Listings */}
-          <div className="col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-4">
             {displayListings.map((listing) => (
               <div key={listing.id} className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow border border-gray-200 overflow-hidden group">
-                <div className="grid grid-cols-12">
-                  <div className="col-span-5 h-64">
+                <div className="grid grid-cols-1 md:grid-cols-12">
+                  <div className="md:col-span-5 h-48 md:h-64">
                     <img 
                       src={listing.image} 
                       alt={listing.title}
@@ -125,7 +148,7 @@ const UserListings: React.FC = () => {
                     />
                   </div>
                   
-                  <div className="col-span-7 p-6">
+                  <div className="md:col-span-7 p-4 md:p-6">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <h3 className="text-xl font-bold text-gray-900 mb-1">{listing.title}</h3>
@@ -185,8 +208,8 @@ const UserListings: React.FC = () => {
             ))}
           </div>
 
-          {/* Right Column - Map */}
-          <div className="space-y-4">
+          {/* Right Column - Map (Hidden on Mobile) */}
+          <div className="hidden lg:block space-y-4">
             <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 h-[800px]">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Property Map</h2>
               <p className="text-sm text-gray-600 mb-4">Locations of available properties.</p>
@@ -223,13 +246,23 @@ const UserListings: React.FC = () => {
 
       {/* Listing Details Modal */}
       {showDetails && selectedListing && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowDetails(false)}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6">
               {/* Modal Header */}
               <div className="flex items-start justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Property Details</h2>
-                <button onClick={() => setShowDetails(false)} className="text-gray-400 hover:text-gray-600">
+                <button 
+                  onClick={() => setShowDetails(false)} 
+                  className="text-gray-400 hover:text-gray-600 transition-colors p-2 hover:bg-gray-100 rounded-lg"
+                  aria-label="Close modal"
+                >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -319,8 +352,17 @@ const UserListings: React.FC = () => {
 
       {/* Appointment Form Modal */}
       {showAppointmentForm && appointmentData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => {
+            setShowAppointmentForm(false);
+            setAppointmentData(null);
+          }}
+        >
+          <div 
+            className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6">
               <AppointmentForm
                 mode="user"
