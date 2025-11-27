@@ -6,7 +6,17 @@ interface AppointmentFormProps {
   realtorName?: string;
   propertyAddress?: string;
   onClose?: () => void;
-  onSubmit?: (data: { clientName: string; email: string; phone: string; date: string; time: string; message?: string }) => void;
+  onSubmit?: (data: { 
+    clientName: string; 
+    clientEmail: string; 
+    clientPhone: string; 
+    propertyAddress: string;
+    realtorName: string;
+    date: string; 
+    time: string; 
+    notes?: string;
+    [key: string]: unknown;
+  }) => void;
 }
 
 const AppointmentForm: React.FC<AppointmentFormProps> = ({ 

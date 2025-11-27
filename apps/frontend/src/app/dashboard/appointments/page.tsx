@@ -13,7 +13,17 @@ const UserAppointments: React.FC = () => {
 
   const calendarDays = Array.from({ length: 31 }, (_, i) => i + 1);
 
-  const handleAppointmentSubmit = (appointmentData: { realtorName: string; propertyAddress: string; date: string; time: string; message?: string }) => {
+  const handleAppointmentSubmit = (appointmentData: { 
+    clientName: string; 
+    clientEmail: string; 
+    clientPhone: string; 
+    propertyAddress: string;
+    realtorName: string;
+    date: string; 
+    time: string; 
+    notes?: string;
+    [key: string]: unknown;
+  }) => {
     const newAppointment = {
       id: Date.now(),
       agent: appointmentData.realtorName,
