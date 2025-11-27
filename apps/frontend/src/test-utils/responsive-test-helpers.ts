@@ -179,7 +179,7 @@ export function getCurrentBreakpoint(width: number): keyof typeof BREAKPOINTS | 
  */
 export function assertTouchTargetSize(
   element: HTMLElement,
-  minSize: number = 44
+  minSize = 44
 ): AssertionResult {
   const rect = element.getBoundingClientRect();
   const width = rect.width;
@@ -299,7 +299,7 @@ export function getInteractiveElements(container: HTMLElement = document.body): 
  */
 export function assertAllTouchTargets(
   container: HTMLElement = document.body,
-  minSize: number = 44
+  minSize = 44
 ): AssertionResult[] {
   const interactiveElements = getInteractiveElements(container);
   return interactiveElements.map((element) => assertTouchTargetSize(element, minSize));
@@ -410,7 +410,7 @@ export function getResponsiveStyles(element: HTMLElement) {
  */
 export function assertReadableText(
   element: HTMLElement,
-  minFontSize: number = 16
+  minFontSize = 16
 ): AssertionResult {
   const computed = window.getComputedStyle(element);
   const fontSize = parseFloat(computed.fontSize);

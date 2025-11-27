@@ -11,9 +11,11 @@ jest.mock('next/navigation', () => ({
 
 // Mock Next.js Image component
 jest.mock('next/image', () => {
-  return function MockImage({ src, alt, ...props }: any) {
+  function MockImage({ src, alt, ...props }: { src: string; alt: string; [key: string]: unknown }) {
     return <img src={src} alt={alt} {...props} />;
-  };
+  }
+  MockImage.displayName = 'MockImage';
+  return MockImage;
 });
 
 const mockPush = jest.fn();

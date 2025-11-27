@@ -9,21 +9,24 @@ import ListingCard from '../ListingCard';
 import {
   VIEWPORTS,
   setViewport,
-  assertTouchTargetSize,
   assertNoHorizontalScroll,
 } from '../../../test-utils/responsive-test-helpers';
 
 // Mock Next.js components
 jest.mock('next/link', () => {
-  return ({ children, href }: { children: React.ReactNode; href: string }) => {
+  const MockLink = ({ children, href }: { children: React.ReactNode; href: string }) => {
     return <a href={href}>{children}</a>;
   };
+  MockLink.displayName = 'MockLink';
+  return MockLink;
 });
 
 jest.mock('next/image', () => {
-  return ({ src, alt, width, height, className }: any) => {
+  const MockImage = ({ src, alt, width, height, className }: any) => {
     return <img src={src} alt={alt} width={width} height={height} className={className} />;
   };
+  MockImage.displayName = 'MockImage';
+  return MockImage;
 });
 
 // Mock useRouter

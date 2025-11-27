@@ -52,7 +52,7 @@ const AdminDashboard: React.FC = () => {
         {/* Page Header */}
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
-          <p className="mt-2 text-gray-600">Welcome back! Here's what's happening with your properties.</p>
+          <p className="mt-2 text-gray-600">Welcome back! Here&apos;s what&apos;s happening with your properties.</p>
         </div>
 
         {/* Stats Grid */}

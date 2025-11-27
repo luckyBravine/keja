@@ -54,7 +54,7 @@ describe('FilterBar Responsive Tests', () => {
     });
 
     it('should have properly sized search button on mobile', () => {
-      const { container } = render(<FilterBar {...mockProps} />);
+      render(<FilterBar {...mockProps} />);
       
       const searchButton = screen.getByText('Search');
       expect(searchButton).toBeInTheDocument();
@@ -197,7 +197,7 @@ describe('FilterBar Responsive Tests', () => {
     });
 
     it('should have all filters visible without wrapping on desktop', () => {
-      const { container } = render(<FilterBar {...mockProps} />);
+      render(<FilterBar {...mockProps} />);
       
       // All filter elements should be present
       expect(screen.getByPlaceholderText('Location')).toBeInTheDocument();
@@ -249,7 +249,7 @@ describe('FilterBar Responsive Tests', () => {
     });
 
     it('should have proper input types for mobile keyboards', () => {
-      const { container } = render(<FilterBar {...mockProps} />);
+      render(<FilterBar {...mockProps} />);
       
       const locationInput = screen.getByPlaceholderText('Location');
       // Text input is appropriate for location search
@@ -337,7 +337,7 @@ describe('FilterBar Responsive Tests', () => {
     });
 
     it('should have proper text sizing across viewports', () => {
-      const { container } = render(<FilterBar {...mockProps} />);
+      render(<FilterBar {...mockProps} />);
       
       const searchButton = screen.getByText('Search');
       expect(searchButton.className).toContain('text-sm');
@@ -362,7 +362,7 @@ describe('FilterBar Responsive Tests', () => {
     });
 
     it('should have proper contrast for all text elements', () => {
-      const { container } = render(<FilterBar {...mockProps} />);
+      render(<FilterBar {...mockProps} />);
       
       // Search button should have good contrast
       const searchButton = screen.getByText('Search');
@@ -371,7 +371,7 @@ describe('FilterBar Responsive Tests', () => {
     });
 
     it('should provide visual feedback on hover', () => {
-      const { container } = render(<FilterBar {...mockProps} />);
+      render(<FilterBar {...mockProps} />);
       
       const searchButton = screen.getByText('Search');
       expect(searchButton.className).toContain('hover:bg-blue-700');

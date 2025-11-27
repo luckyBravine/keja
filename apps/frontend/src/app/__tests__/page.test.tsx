@@ -5,28 +5,36 @@ import IndexPage from '../page';
 
 // Mock Next.js components
 jest.mock('next/image', () => {
-  return function MockImage({ src, alt, priority, ...props }: any) {
+  function MockImage({ src, alt, priority, ...props }: { src: string; alt: string; priority?: boolean; [key: string]: unknown }) {
     // Remove priority prop as it's not a valid HTML attribute
     return <img src={src} alt={alt} {...props} />;
-  };
+  }
+  MockImage.displayName = 'MockImage';
+  return MockImage;
 });
 
 jest.mock('../components/Navbar', () => {
-  return function MockNavbar() {
+  function MockNavbar() {
     return <nav data-testid="navbar">Navbar</nav>;
-  };
+  }
+  MockNavbar.displayName = 'MockNavbar';
+  return MockNavbar;
 });
 
 jest.mock('../components/Footer', () => {
-  return function MockFooter() {
+  function MockFooter() {
     return <footer data-testid="footer">Footer</footer>;
-  };
+  }
+  MockFooter.displayName = 'MockFooter';
+  return MockFooter;
 });
 
 jest.mock('../components/ListingCard', () => {
-  return function MockListingCard({ title, price, id }: any) {
+  function MockListingCard({ title, price, id }: { title: string; price: number; id: string }) {
     return <div data-testid="listing-card" key={id}>{title} - Ksh{price}</div>;
-  };
+  }
+  MockListingCard.displayName = 'MockListingCard';
+  return MockListingCard;
 });
 
 describe('IndexPage', () => {

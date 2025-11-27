@@ -11,7 +11,6 @@ import {
   assertTouchTargetSize,
   assertNoHorizontalScroll,
   assertResponsiveImage,
-  assertViewportMetaTag,
   assertReadableText,
   getInteractiveElements,
 } from '../responsive-test-helpers';

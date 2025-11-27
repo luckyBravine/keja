@@ -18,7 +18,7 @@ const DashboardPage: React.FC = () => {
       {/* Page Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Welcome Back!</h1>
-        <p className="mt-2 text-gray-600">Here's a quick overview of your dashboard.</p>
+        <p className="mt-2 text-gray-600">Here&apos;s a quick overview of your dashboard.</p>
       </div>
 
       {/* Overview Cards */}
