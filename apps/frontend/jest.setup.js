@@ -44,14 +44,23 @@ global.PerformanceObserver = class PerformanceObserver {
   unobserve() {}
 }
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-}
-global.localStorage = localStorageMock
+// Mock localStorage with actual storage
+const localStorageMock = (() => {
+  let store = {};
+  return {
+    getItem: jest.fn((key) => store[key] || null),
+    setItem: jest.fn((key, value) => {
+      store[key] = value.toString();
+    }),
+    removeItem: jest.fn((key) => {
+      delete store[key];
+    }),
+    clear: jest.fn(() => {
+      store = {};
+    }),
+  };
+})();
+global.localStorage = localStorageMock;
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -84,4 +93,9 @@ beforeAll(() => {
 
 afterAll(() => {
   console.error = originalError
+})
+
+// Reset localStorage before each test
+beforeEach(() => {
+  global.localStorage.clear();
 })

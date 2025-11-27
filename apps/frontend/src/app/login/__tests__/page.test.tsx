@@ -52,6 +52,12 @@ describe('LoginPage', () => {
   it('shows loading state during login', async () => {
     render(<LoginPage />);
     
+    // Fill out the form
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    
     const loginButton = screen.getByRole('button', { name: /login/i });
     fireEvent.click(loginButton);
     
@@ -60,42 +66,63 @@ describe('LoginPage', () => {
     
     await waitFor(() => {
       expect(screen.queryByText('Signing In...')).not.toBeInTheDocument();
-    });
+    }, { timeout: 3000 });
   });
 
   it('redirects regular user to dashboard after login', async () => {
     localStorage.setItem('userType', 'user');
     render(<LoginPage />);
     
+    // Fill out the form
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    
     const loginButton = screen.getByRole('button', { name: /login/i });
     fireEvent.click(loginButton);
     
+    // Wait for the async login operation (1500ms delay in the component)
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/dashboard');
-    });
+    }, { timeout: 3000 });
   });
 
   it('redirects realtor to admin dashboard after login', async () => {
     localStorage.setItem('userType', 'realtor');
     render(<LoginPage />);
     
+    // Fill out the form
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    
     const loginButton = screen.getByRole('button', { name: /login/i });
     fireEvent.click(loginButton);
     
+    // Wait for the async login operation (1500ms delay in the component)
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/admin/dashboard');
-    });
+    }, { timeout: 3000 });
   });
 
   it('sets isLoggedIn in localStorage after successful login', async () => {
     render(<LoginPage />);
     
+    // Fill out the form
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/password/i);
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    
     const loginButton = screen.getByRole('button', { name: /login/i });
     fireEvent.click(loginButton);
     
+    // Wait for the async login operation (1500ms delay in the component)
     await waitFor(() => {
       expect(localStorage.getItem('isLoggedIn')).toBe('true');
-    });
+    }, { timeout: 3000 });
   });
 
   it('renders forgot password link', () => {
