@@ -31,9 +31,15 @@ jobs:
         with:
           node-version: '20'
       - name: Install dependencies
-        run: npm ci && cd apps/frontend && npm ci
+        run: npm ci
+        env:
+          NX_SKIP_NX_CACHE: 'true'
+      - name: Verify Nx installation
+        run: npx nx --version
       - name: Build
-        run: npx nx build frontend --output-path=apps/frontend/.next
+        run: npx nx build frontend --skip-nx-cache
+        env:
+          NX_SKIP_NX_CACHE: 'true'
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
         with:
@@ -41,7 +47,3 @@ jobs:
           vercel-org-id: ${{ secrets.ORG_ID }}
           vercel-project-id: ${{ secrets.PROJECT_ID }}
           working-directory: apps/frontend
-      - name: Install dependencies
-        run: npm ci
-      - name: Build
-        run: npx nx build frontend --output-path=apps/frontend/.next
