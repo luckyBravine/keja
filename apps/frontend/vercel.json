@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd ../.. && npx nx build frontend --skip-nx-cache",
+  "outputDirectory": "../../dist/apps/frontend/.next",
+  "framework": "nextjs",
+  "installCommand": "cd ../.. && npm ci"
+}
+

@@ -1,9 +1,9 @@
 {
   "version": 2,
-  "buildCommand": "cd ../.. && npx nx build @keja/frontend --skip-nx-cache",
-  "outputDirectory": ".next",
+  "buildCommand": "npx nx build frontend --skip-nx-cache",
+  "outputDirectory": "dist/apps/frontend/.next",
   "framework": "nextjs",
-  "installCommand": "cd ../.. && npm ci",
+  "installCommand": "npm ci",
   "env": {
     "NX_SKIP_NX_CACHE": "true"
   }
