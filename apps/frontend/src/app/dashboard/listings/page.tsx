@@ -6,7 +6,23 @@ import AppointmentForm from '@/app/components/AppointmentForm';
 const UserListings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'popular' | 'new' | 'bookmarked'>('bookmarked');
   const [locationFilter, setLocationFilter] = useState('all');
-  const [selectedListing, setSelectedListing] = useState<any>(null);
+  interface Listing {
+    id: number;
+    image: string;
+    title: string;
+    address: string;
+    price: string;
+    type: string;
+    beds: string;
+    baths: string;
+    sqft: string;
+    status: string;
+    savedDate: string;
+    isBookmarked: boolean;
+    description: string;
+    realtor: { name: string; phone: string; email: string };
+  }
+  const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const router = useRouter();
 
@@ -33,7 +49,7 @@ const UserListings: React.FC = () => {
     { value: 'kisumu', label: 'Kisumu' },
   ];
 
-  const handleViewDetails = (listing: any) => {
+  const handleViewDetails = (listing: Listing) => {
     setSelectedListing(listing);
     setShowDetails(true);
   };
@@ -41,7 +57,7 @@ const UserListings: React.FC = () => {
   const [showAppointmentForm, setShowAppointmentForm] = useState(false);
   const [appointmentData, setAppointmentData] = useState<{realtorName: string; propertyAddress: string} | null>(null);
 
-  const handleBookAppointment = (listing?: any) => {
+  const handleBookAppointment = (listing?: Listing) => {
     if (listing) {
       setAppointmentData({
         realtorName: listing.realtor.name,

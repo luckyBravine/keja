@@ -16,14 +16,14 @@ export interface ViewportConfig {
 
 export interface ResponsiveTestOptions {
   viewport: ViewportConfig;
-  component: React.ComponentType<any>;
-  props?: Record<string, any>;
+  component: React.ComponentType<Record<string, unknown>>;
+  props?: Record<string, unknown>;
 }
 
 export interface AssertionResult {
   passed: boolean;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 /**

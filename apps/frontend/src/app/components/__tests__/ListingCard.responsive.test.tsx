@@ -22,7 +22,7 @@ jest.mock('next/link', () => {
 });
 
 jest.mock('next/image', () => {
-  const MockImage = ({ src, alt, width, height, className }: any) => {
+  const MockImage = ({ src, alt, width, height, className }: { src: string; alt: string; width?: number; height?: number; className?: string }) => {
     return <img src={src} alt={alt} width={width} height={height} className={className} />;
   };
   MockImage.displayName = 'MockImage';

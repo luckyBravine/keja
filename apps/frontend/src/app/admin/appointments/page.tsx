@@ -28,7 +28,7 @@ const AdminAppointments: React.FC = () => {
     }
   };
 
-  const handleAppointmentSubmit = (appointmentData: any) => {
+  const handleAppointmentSubmit = (appointmentData: { clientName: string; email: string; phone: string; date: string; time: string; message?: string }) => {
     const newAppointment = {
       id: Date.now(),
       client: appointmentData.clientName,
