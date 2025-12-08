@@ -1,7 +1,7 @@
 from django.db import models
 
 from django.contrib.auth.models import (
-        AbstractBaseUser,
+        AbstractUser,
         BaseUserManager,
         PermissionsMixin
         )
@@ -52,18 +52,48 @@ class UserManager(BaseUserManager):
         return superuser
 
 
-class User(AbstractBaseUser, PermissionsMixin):
-    """Custom user model"""
-    email = models.EmailField(unique=True)
-    first_name = models.CharField(max_length=30)
-    last_name = models.CharField(max_length=30)
-    phone_number = models.CharField(max_length=1, null=True)
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+class User(AbstractUser):
+    """Extended user model with role-based access"""
+    ROLE_CHOICES = [
+        ('client', 'Client'),
+        ('agent', 'Agent'),
+        ('admin', 'Admin'),
+    ]
+    
+    role = models.CharField(
+        max_length=10,
+        choices=ROLE_CHOICES,
+        default='client',
+        help_text='User role in the system'
+    )
+    phone = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text='Contact phone number'
+    )
+    avatar = models.ImageField(
+        upload_to='avatars/',
+        null=True,
+        blank=True,
+        help_text='User profile picture'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    objects = UserManager()
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'User'
+        verbose_name_plural = 'Users'
+    
+    def __str__(self):
+        return f"{self.username} ({self.get_role_display()})"
+    
+    @property
+    def is_agent(self):
+        """Check if user is an agent"""
+        return self.role == 'agent'
+    
+    @property
+    def is_client(self):
+        """Check if user is a client"""
+        return self.role == 'client'
