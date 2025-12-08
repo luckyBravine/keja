@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Listing, ListingImage
+
+from listings.models import Listing, ListingImage
 
 
 class ListingImageSerializer(serializers.ModelSerializer):
@@ -146,3 +147,4 @@ class ListingCreateUpdateSerializer(serializers.ModelSerializer):
         if value <= 0:
             raise serializers.ValidationError("Square feet must be greater than zero.")
         return value
+

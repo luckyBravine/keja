@@ -2,6 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import RegisterView, UserProfileView
 
+
 urlpatterns = [
     # Authentication endpoints
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -10,4 +11,5 @@ urlpatterns = [
     
     # User profile endpoints
     path('profile/', UserProfileView.as_view(), name='user_profile'),
+
 ]

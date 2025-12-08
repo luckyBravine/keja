@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Listing, ListingImage
+from listings.models import Listing, ListingImage
 
 
 class ListingImageInline(admin.TabularInline):
@@ -101,3 +101,4 @@ class ListingImageAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+

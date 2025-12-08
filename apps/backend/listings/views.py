@@ -1,10 +1,12 @@
+from users.permissions import IsAdminOrReadOnly
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
-from .models import Listing, ListingImage
-from .serializers import (
+from listings.permissions import IsOwnerOrReadOnly
+from listings.models import Listing, ListingImage
+from listings.serializers import (
     ListingSerializer,
     ListingListSerializer,
     ListingCreateUpdateSerializer,
@@ -12,16 +14,10 @@ from .serializers import (
 )
 
 
-class IsOwnerOrReadOnly(permissions.BasePermission):
-    """Custom permission to only allow owners to edit listings"""
-    
-    def has_object_permission(self, request, view, obj):
-        # Read permissions are allowed for any request
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        
-        # Write permissions only for the owner
-        return obj.agent == request.user
+class ListingViewSet(viewsets.ModelViewSet):
+    queryset = Listing.objects.all()
+    serializer_class = ListingSerializer
+    permission_classes = [IsAdminOrReadOnly]
 
 
 class ListingViewSet(viewsets.ModelViewSet):
