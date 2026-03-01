@@ -33,7 +33,6 @@ const AdminSubscription: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showPlans, setShowPlans] = useState(false);
   const [userEmail, setUserEmail] = useState('');
-  const [plansLoading, setPlansLoading] = useState(false);
   const searchParams = useSearchParams();
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
