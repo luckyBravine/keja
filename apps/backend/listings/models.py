@@ -7,8 +7,10 @@ class Listing(models.Model):
     """Property listing model"""
     
     PROPERTY_TYPE_CHOICES = [
-        ('house', 'House'),
+        ('bedsitter', 'Bedsitter'),
+        ('singles', 'Singles'),
         ('apartment', 'Apartment'),
+        ('house', 'House'),
         ('condo', 'Condo'),
         ('townhouse', 'Townhouse'),
         ('land', 'Land'),
@@ -188,3 +190,32 @@ class ListingImage(models.Model):
                 is_primary=True
             ).exclude(pk=self.pk).update(is_primary=False)
         super().save(*args, **kwargs)
+
+
+class SavedListing(models.Model):
+    """User saved/liked listings (for clients)"""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='saved_listings',
+        help_text='User who saved the listing'
+    )
+    listing = models.ForeignKey(
+        Listing,
+        on_delete=models.CASCADE,
+        related_name='saved_by',
+        help_text='Saved listing'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Saved Listing'
+        verbose_name_plural = 'Saved Listings'
+        unique_together = [['user', 'listing']]
+        indexes = [
+            models.Index(fields=['user']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} saved {self.listing.title}"

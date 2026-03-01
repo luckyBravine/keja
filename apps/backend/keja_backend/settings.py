@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +26,7 @@ SECRET_KEY = 'django-insecure-0yzo(a*mreml#2dwkpgem$q$f7u6-%mb345hb6vg!j+s47ft8z
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.0.101', '*']
 
 
 # Application definition
@@ -44,9 +45,12 @@ INSTALLED_APPS = [
     'django_filters',
     'drf_spectacular',
     # Local apps
+    'core',
     'users',
     'listings',
     'appointments',
+    'payments',
+    'messaging',
 ]
 
 MIDDLEWARE = [
@@ -142,7 +146,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://localhost:4200",
     "http://127.0.0.1:3000",
+    "http://127.0.0.1:4200",
+    "http://192.168.0.101:4200",
+    "http://192.168.0.101:3000",
+    "http://192.168.88.125:4200",
+    "http://192.168.88.125:3000",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -184,6 +194,7 @@ REST_FRAMEWORK = {
         'rest_framework.filters.OrderingFilter',
     ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
 }
 
 # JWT Configuration
@@ -204,3 +215,25 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+# Paystack Configuration
+# Get these from your Paystack dashboard: https://dashboard.paystack.com/#/settings/developer
+PAYSTACK_SECRET_KEY = 'sk_test_f76149ca023253990ec6ecfc04ae5bd7d3ca6e87'  # Replace with your secret key
+PAYSTACK_PUBLIC_KEY = 'pk_test_648e125ad0c93edbe5be27f4b44ac4bd635c2a1d'  # Replace with your public key
+
+# For production, use environment variables:
+# PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', '')
+# PAYSTACK_PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY', '')
+
+# Email: use SMTP in production (set env vars); development uses console
+if os.environ.get('EMAIL_HOST'):
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'true').lower() in ('1', 'true', 'yes')
+    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Keja <noreply@keja.com>')
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    DEFAULT_FROM_EMAIL = 'Keja <noreply@keja.com>'

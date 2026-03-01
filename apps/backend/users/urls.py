@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from .views import RegisterView, UserProfileView
+from .views import RegisterView, UserProfileView, AgentListView
 
 urlpatterns = [
     # Authentication endpoints
@@ -10,4 +10,5 @@ urlpatterns = [
     
     # User profile endpoints
     path('profile/', UserProfileView.as_view(), name='user_profile'),
+    path('agents/', AgentListView.as_view(), name='agent_list'),
 ]

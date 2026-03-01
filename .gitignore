@@ -17,6 +17,10 @@ node_modules
 .settings/
 *.sublime-workspace
 
+# Keja Documentations
+keja-docs
+.kiro
+
 # IDE - VSCode
 .vscode/*
 !.vscode/settings.json

@@ -27,7 +27,10 @@ const FilterBar: React.FC<FilterBarProps> = ({ location, onLocationChange, prope
         <option value="Bedsitter">Bedsitter</option>
         <option value="Singles">Singles</option>
         <option value="Apartment">Apartment</option>
+        <option value="House">House</option>
         <option value="Condo">Condo</option>
+        <option value="Townhouse">Townhouse</option>
+        <option value="Land">Land</option>
       </select>
       <select value={priceRange} onChange={(e) => onPriceRangeChange(e.target.value)} className="bg-white border border-gray-300 rounded-lg px-3 sm:px-4 py-2 sm:py-3 w-full sm:w-48 text-sm sm:text-base">
         <option value="">Price Range</option>

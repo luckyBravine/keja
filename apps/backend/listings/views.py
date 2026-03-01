@@ -3,12 +3,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
-from .models import Listing, ListingImage
+from .models import Listing, ListingImage, SavedListing
 from .serializers import (
     ListingSerializer,
     ListingListSerializer,
     ListingCreateUpdateSerializer,
-    ListingImageSerializer
+    ListingImageSerializer,
+    SavedListingSerializer,
 )
 
 
@@ -196,5 +197,47 @@ class ListingViewSet(viewsets.ModelViewSet):
         except ListingImage.DoesNotExist:
             return Response(
                 {'error': 'Image not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+
+class SavedListingViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for user saved/liked listings (clients only).
+    list: GET /api/listings/saved/
+    create: POST /api/listings/saved/ body {listing_id: int}
+    destroy: DELETE /api/listings/saved/{id}/
+    unsave: DELETE /api/listings/saved/unsave/?listing_id={id}
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = SavedListingSerializer
+    http_method_names = ['get', 'post', 'delete', 'head', 'options']
+
+    def get_queryset(self):
+        return SavedListing.objects.filter(
+            user=self.request.user
+        ).select_related('listing', 'listing__agent').prefetch_related('listing__images').order_by('-created_at')
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
+    @action(detail=False, methods=['delete'], url_path='unsave')
+    def unsave(self, request):
+        """Remove saved listing by listing_id. DELETE /api/listings/saved/unsave/?listing_id=1"""
+        listing_id = request.query_params.get('listing_id')
+        if not listing_id:
+            return Response(
+                {'error': 'listing_id query parameter is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            saved = SavedListing.objects.get(user=request.user, listing_id=int(listing_id))
+            saved.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except (SavedListing.DoesNotExist, ValueError):
+            return Response(
+                {'error': 'Saved listing not found'},
                 status=status.HTTP_404_NOT_FOUND
             )

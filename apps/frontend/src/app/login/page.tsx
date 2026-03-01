@@ -1,7 +1,8 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getApiUrl } from '@/app/lib/api';
 
 import { FaApple } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
@@ -11,32 +12,81 @@ import { CiMail } from "react-icons/ci";
 
 const LoginPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextUrl = searchParams.get('next');
   const [formData, setFormData] = useState({
-    email: '',
+    email: '',  // used as username (backend expects username)
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(null);
     setIsLoading(true);
-    
+
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Demo login - check if user is a realtor
-      const userType = localStorage.getItem('userType') || 'user';
-      localStorage.setItem('isLoggedIn', 'true');
-      
-      if (userType === 'realtor') {
-        router.push('/admin/dashboard');
-      } else {
-        router.push('/dashboard');
+      const res = await fetch(getApiUrl('auth/login/'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: formData.email.trim(),
+          password: formData.password,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const d = data as { detail?: string; error?: { message?: string; details?: unknown } };
+        const msg = d?.error?.message
+          || (d?.error?.details && typeof d.error.details === 'object' && (d.error.details as { message?: string }).message)
+          || d?.detail;
+        setError(msg || 'Invalid email or password.');
+        setIsLoading(false);
+        return;
       }
-    } catch (error) {
-      console.error('Login error:', error);
-    } finally {
+
+      const access = (data as { access?: string }).access;
+      const refresh = (data as { refresh?: string }).refresh;
+      if (access) {
+        localStorage.setItem('access_token', access);
+        localStorage.setItem('isLoggedIn', 'true');
+      }
+      if (refresh) localStorage.setItem('refresh_token', refresh);
+
+      // If user tried to save a listing before login, save it now
+      const pendingSaveId = typeof window !== 'undefined' ? localStorage.getItem('keja_pending_save_listing_id') : null;
+      if (pendingSaveId && access) {
+        try {
+          await fetch(getApiUrl('listings/saved/'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${access}` },
+            body: JSON.stringify({ listing_id: Number(pendingSaveId) }),
+          });
+        } catch (_) { /* ignore */ }
+        localStorage.removeItem('keja_pending_save_listing_id');
+      }
+
+      // Redirect by role: get profile to know if agent or client
+      const profileRes = await fetch(getApiUrl('auth/profile/'), {
+        headers: { Authorization: `Bearer ${access}` },
+      });
+      if (profileRes.ok) {
+        const profile = await profileRes.json();
+        const role = (profile as { role?: string }).role;
+        if (role === 'agent' || role === 'admin') {
+          router.push('/admin/dashboard');
+          return;
+        }
+      }
+      // Client: redirect to ?next= if safe (starts with /dashboard), else dashboard
+      const safe = nextUrl && nextUrl.startsWith('/dashboard');
+      router.push(safe ? nextUrl : '/dashboard');
+      // Keep loading true until navigation completes
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Network error. Is the backend running?');
       setIsLoading(false);
     }
   };
@@ -83,6 +133,11 @@ const LoginPage = () => {
 
             {/* Login Form */}
             <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+              {error && (
+                <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
               {/* Email Field */}
               <div>
                 <label htmlFor="email" className="block text-sm sm:text-base lg:text-lg font-semibold text-gray-700 mb-2 sm:mb-3">Email / Username</label>

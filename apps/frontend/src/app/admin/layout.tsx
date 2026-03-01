@@ -9,6 +9,7 @@ import { MdOutlinePayment } from "react-icons/md";
 import { MdOutlineSettings } from "react-icons/md";
 import { BiSolidDashboard } from "react-icons/bi";
 import { GrNotification } from "react-icons/gr";
+import { MdOutlinePowerSettingsNew } from "react-icons/md";
 
 
 export default function AdminLayout({
@@ -29,14 +30,17 @@ export default function AdminLayout({
     { name: 'Settings', href: '/admin/settings', icon: <MdOutlineSettings/> },
   ];
 
-  const mockNotifications = [
-    { id: 1, message: 'New appointment request from John Smith', time: '2 min ago', type: 'appointment' },
-    { id: 2, message: 'Property listing approved for 123 Main St', time: '1 hour ago', type: 'listing' },
-    { id: 3, message: 'Payment received for Premium subscription', time: '3 hours ago', type: 'payment' },
-  ];
+  const notifications: Array<{ id: number; message: string; time: string; type: string }> = [];
 
   const handleProfileClick = () => {
     router.push('/admin/settings');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userType');
+    localStorage.removeItem('accessToken');
+    router.push('/');
   };
 
   const handleNotificationClick = () => {
@@ -68,9 +72,9 @@ export default function AdminLayout({
       )}
 
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:h-screen flex flex-col overflow-y-hidden`}>
+      } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:fixed lg:inset-0 lg:h-screen flex flex-col overflow-y-hidden flex-shrink-0`}>
         <div className="flex items-center justify-center h-16 px-4 bg-blue-600 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
@@ -80,7 +84,7 @@ export default function AdminLayout({
           </div>
         </div>
         
-        <nav className="mt-8 px-4 flex-1 overflow-y-hidden">
+        <nav className="mt-8 px-4 flex-1 overflow-y-auto">
           {navigation.map((item) => (
             <Link
               key={item.name}
@@ -97,10 +101,21 @@ export default function AdminLayout({
             </Link>
           ))}
         </nav>
-      </div>
+
+        {/* Logout */}
+        <div className="p-4 border-t border-gray-200 flex-shrink-0">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-red-50 hover:text-red-600 w-full"
+          >
+            <MdOutlinePowerSettingsNew className="text-lg" />
+            <span className="font-medium">Logout</span>
+          </button>
+        </div>
+      </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
         {/* Top header */}
         <header className="bg-white shadow-sm border-b border-gray-200 h-16">
           <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-full">
@@ -155,27 +170,37 @@ export default function AdminLayout({
                   className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md relative"
                 >
                   <GrNotification className="w-5 h-5" />
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-medium">3</span>
+                  {notifications.length > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[1.25rem] h-4 px-1 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-medium">
+                      {notifications.length > 99 ? '99+' : notifications.length}
+                    </span>
+                  )}
                 </button>
 
                 {/* Notifications Dropdown */}
                 {notificationsOpen && (
-                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 notifications-dropdown">
                     <div className="p-4 border-b border-gray-200">
                       <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
                     </div>
                     <div className="max-h-64 overflow-y-auto">
-                      {mockNotifications.map((notification) => (
-                        <div key={notification.id} className="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer">
-                          <p className="text-sm text-gray-900">{notification.message}</p>
-                          <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                      {notifications.length === 0 ? (
+                        <div className="p-6 text-center text-sm text-gray-500">
+                          No notifications yet.
                         </div>
-                      ))}
+                      ) : (
+                        notifications.map((notification) => (
+                          <div key={notification.id} className="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer">
+                            <p className="text-sm text-gray-900">{notification.message}</p>
+                            <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                          </div>
+                        ))
+                      )}
                     </div>
                     <div className="p-4 border-t border-gray-200">
-                      <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                        View all notifications
-                      </button>
+                      <Link href="/admin/settings" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                        Settings
+                      </Link>
                     </div>
                   </div>
                 )}

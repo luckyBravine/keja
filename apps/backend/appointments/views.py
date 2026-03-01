@@ -47,28 +47,37 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         )
     
     def update(self, request, *args, **kwargs):
-        """Update appointment - only status can be updated"""
+        """Update appointment: client can update date/time/notes; agent can update status."""
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        
-        # Only agent can update status
-        if instance.agent != request.user:
+        is_agent = instance.agent == request.user
+        is_client = instance.client == request.user
+
+        if is_client:
+            allowed = {'scheduled_date', 'scheduled_time', 'notes'}
+            data = {k: v for k, v in request.data.items() if k in allowed}
+            if not data:
+                return Response(
+                    {'error': 'You can only update date, time, or notes.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        elif is_agent:
+            allowed = {'status'}
+            data = {k: v for k, v in request.data.items() if k in allowed}
+            if not data:
+                return Response(
+                    {'error': 'Only status can be updated.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
             return Response(
-                {'error': 'Only the agent can update appointment status.'},
+                {'error': 'You can only edit your own appointments.'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
-        # Only allow status updates
-        if 'status' not in request.data:
-            return Response(
-                {'error': 'Only status can be updated.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        serializer = self.get_serializer(instance, data=request.data, partial=True)
+
+        serializer = self.get_serializer(instance, data=data, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        
         return Response(serializer.data)
     
     def destroy(self, request, *args, **kwargs):

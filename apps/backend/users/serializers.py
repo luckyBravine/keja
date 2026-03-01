@@ -58,7 +58,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
-    """Serializer for detailed user profile"""
+    """Serializer for detailed user profile; avatar supports file upload and returns absolute URL."""
     
     class Meta:
         model = User
@@ -67,3 +67,38 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'role', 'phone', 'avatar', 'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'username', 'created_at', 'updated_at']
+        extra_kwargs = {'avatar': {'required': False}}
+    
+    def validate_avatar(self, value):
+        if not value:
+            return value
+        if value.size > 5 * 1024 * 1024:  # 5MB
+            raise serializers.ValidationError('Avatar must be 5MB or smaller.')
+        allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+        if value.content_type not in allowed:
+            raise serializers.ValidationError('Allowed formats: JPEG, PNG, WebP, GIF.')
+        return value
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if instance.avatar:
+            request = self.context.get('request')
+            if request:
+                data['avatar'] = request.build_absolute_uri(instance.avatar.url)
+        return data
+
+
+class AgentListSerializer(serializers.ModelSerializer):
+    """Public serializer for listing agents (discover agents)."""
+    name = serializers.SerializerMethodField()
+    listing_count = serializers.IntegerField(read_only=True)
+    
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'name', 'phone', 'listing_count']
+        read_only_fields = ['id', 'username', 'email', 'first_name', 'last_name', 'name', 'phone', 'listing_count']
+    
+    def get_name(self, obj):
+        if obj.first_name or obj.last_name:
+            return f"{obj.first_name or ''} {obj.last_name or ''}".strip()
+        return obj.username

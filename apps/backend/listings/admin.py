@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Listing, ListingImage
+from .models import Listing, ListingImage, SavedListing
 
 
 class ListingImageInline(admin.TabularInline):
@@ -80,6 +80,15 @@ class ListingAdmin(admin.ModelAdmin):
         updated = queryset.update(is_deleted=False)
         self.message_user(request, f'{updated} listing(s) restored.')
     restore.short_description = 'Restore selected'
+
+
+@admin.register(SavedListing)
+class SavedListingAdmin(admin.ModelAdmin):
+    list_display = ['user', 'listing', 'created_at']
+    list_filter = ['created_at']
+    search_fields = ['user__username', 'listing__title']
+    ordering = ['-created_at']
+    raw_id_fields = ['user', 'listing']
 
 
 @admin.register(ListingImage)

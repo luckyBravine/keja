@@ -1,11 +1,28 @@
 'use client';
 import React, { useState } from 'react';
 
+interface ListingOption {
+  id: number;
+  title: string;
+  address: string;
+  realtorName?: string;
+}
+
 interface AppointmentFormProps {
   mode: 'user' | 'admin'; // user books appointment, admin manages
   realtorName?: string;
   propertyAddress?: string;
+  /** For admin: list of agent listings to pick from. For user: optional listing to prefill. */
+  listings?: ListingOption[];
+  /** Pre-selected listing id (user booking for a specific listing) */
+  listingId?: number;
+  /** Pre-fill form for editing an existing appointment (date, time, notes) */
+  initialValues?: { date?: string; time?: string; notes?: string; listingId?: number };
+  /** Edit mode: only date, time, notes are editable and validated */
+  isEditMode?: boolean;
   onClose?: () => void;
+  /** When true, submit button shows loading and is disabled (parent controls closing on success) */
+  submitting?: boolean;
   onSubmit?: (data: { 
     clientName: string; 
     clientEmail: string; 
@@ -15,6 +32,7 @@ interface AppointmentFormProps {
     date: string; 
     time: string; 
     notes?: string;
+    listingId?: number;
     [key: string]: unknown;
   }) => void;
 }
@@ -23,18 +41,24 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   mode, 
   realtorName = '', 
   propertyAddress = '',
+  listings = [],
+  listingId: initialListingId,
+  initialValues,
+  isEditMode = false,
   onClose,
+  submitting = false,
   onSubmit 
 }) => {
   const [formData, setFormData] = useState({
     propertyAddress: propertyAddress || '',
     realtorName: realtorName || '',
-    date: '',
-    time: '',
+    date: initialValues?.date ?? '',
+    time: initialValues?.time ?? '',
     clientName: '',
     clientEmail: '',
     clientPhone: '',
-    notes: '',
+    notes: initialValues?.notes ?? '',
+    listingId: initialValues?.listingId ?? initialListingId ?? (listings.length ? listings[0].id : 0),
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -49,7 +73,10 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
   const validate = () => {
     const newErrors: Record<string, string> = {};
 
-    if (mode === 'user') {
+    if (isEditMode) {
+      if (!formData.date) newErrors.date = 'Date is required';
+      if (!formData.time) newErrors.time = 'Time is required';
+    } else if (mode === 'user') {
       if (!formData.propertyAddress.trim()) {
         newErrors.propertyAddress = 'Property address is required';
       }
@@ -75,10 +102,13 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       }
     } else {
       // Admin mode - managing appointments
-      if (!formData.clientName.trim()) {
+      if (listings?.length && (!formData.listingId || formData.listingId === 0)) {
+        newErrors.listingId = 'Please select a listing';
+      }
+      if (!formData.clientName?.trim()) {
         newErrors.clientName = 'Client name is required';
       }
-      if (!formData.propertyAddress.trim()) {
+      if (!formData.propertyAddress?.trim() && !listings?.length) {
         newErrors.propertyAddress = 'Property address is required';
       }
       if (!formData.date) {
@@ -95,13 +125,11 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validate()) {
-      return;
-    }
+    if (submitting || !validate()) return;
 
     const appointmentData = {
       ...formData,
+      listingId: formData.listingId || initialListingId,
       id: Date.now(),
       status: 'Pending',
       createdAt: new Date().toISOString(),
@@ -110,22 +138,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     if (onSubmit) {
       onSubmit(appointmentData);
     }
-
-    // Reset form
-    setFormData({
-      propertyAddress: propertyAddress || '',
-      realtorName: realtorName || '',
-      date: '',
-      time: '',
-      clientName: '',
-      clientEmail: '',
-      clientPhone: '',
-      notes: '',
-    });
-
-    if (onClose) {
-      onClose();
-    }
+    // Parent closes modal on success; do not close or reset here so errors stay visible
   };
 
   const handleChange = (field: string, value: string) => {
@@ -139,7 +152,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <h3 className="text-xl font-bold text-gray-900 mb-4">
-          {mode === 'user' ? 'Book Appointment' : 'Schedule Appointment'}
+          {isEditMode ? 'Reschedule Appointment' : mode === 'user' ? 'Book Appointment' : 'Schedule Appointment'}
         </h3>
         <p className="text-sm text-gray-600 mb-6">
           {mode === 'user' 
@@ -148,28 +161,62 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
         </p>
       </div>
 
-      {/* Property Address */}
-      <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
-          Property Address <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          value={formData.propertyAddress}
-          onChange={(e) => handleChange('propertyAddress', e.target.value)}
-          placeholder="e.g., 123 Main St, Nairobi"
-          className={`w-full px-4 py-3 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-            errors.propertyAddress ? 'border-red-500' : 'border-gray-300'
-          }`}
-          readOnly={mode === 'user' && !!propertyAddress}
-        />
-        {errors.propertyAddress && (
-          <p className="text-red-500 text-xs mt-1">{errors.propertyAddress}</p>
-        )}
-      </div>
+      {/* Listing dropdown (admin or user when listings provided); in edit mode show read-only */}
+      {!isEditMode && (mode === 'admin' || (mode === 'user' && listings && listings.length > 0)) && listings && listings.length > 0 ? (
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
+            Listing <span className="text-red-500">*</span>
+          </label>
+          <select
+            value={formData.listingId || ''}
+            onChange={(e) => {
+              const id = Number(e.target.value);
+              const listing = listings.find((l) => l.id === id);
+              setFormData((prev) => ({
+                ...prev,
+                listingId: id,
+                propertyAddress: listing?.address ?? prev.propertyAddress,
+                realtorName: listing?.realtorName ?? prev.realtorName,
+              }));
+            }}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+          >
+            <option value="">Select listing</option>
+            {listings.map((l) => (
+              <option key={l.id} value={l.id}>{l.title} – {l.address}</option>
+            ))}
+          </select>
+        </div>
+      ) : !isEditMode ? (
+        <>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
+              Property Address <span className="text-red-500">*</span>
+            </label>
+            <input
+            type="text"
+            value={formData.propertyAddress}
+            onChange={(e) => handleChange('propertyAddress', e.target.value)}
+            placeholder="e.g., 123 Main St, Nairobi"
+            className={`w-full px-4 py-3 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+              errors.propertyAddress ? 'border-red-500' : 'border-gray-300'
+            }`}
+            readOnly={mode === 'user' && !!propertyAddress}
+          />
+          {errors.propertyAddress && (
+            <p className="text-red-500 text-xs mt-1">{errors.propertyAddress}</p>
+          )}
+        </div>
+        </>
+      ) : (
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Listing</label>
+          <p className="text-gray-700 py-2">{propertyAddress || realtorName ? `${propertyAddress || ''} ${realtorName || ''}`.trim() : 'Selected listing'}</p>
+        </div>
+      )}
 
       {/* Realtor Name (for users) */}
-      {mode === 'user' && (
+      {!isEditMode && mode === 'user' && (
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             Realtor Name <span className="text-red-500">*</span>
@@ -191,6 +238,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       )}
 
       {/* Client Name */}
+      {!isEditMode && (
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">
           {mode === 'user' ? 'Your Name' : 'Client Name'} <span className="text-red-500">*</span>
@@ -208,9 +256,10 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
           <p className="text-red-500 text-xs mt-1">{errors.clientName}</p>
         )}
       </div>
+      )}
 
       {/* Client Email (for users) */}
-      {mode === 'user' && (
+      {!isEditMode && mode === 'user' && (
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             Email <span className="text-red-500">*</span>
@@ -231,6 +280,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       )}
 
       {/* Client Phone */}
+      {!isEditMode && (
       <div>
         <label className="block text-sm font-semibold text-gray-700 mb-2">
           {mode === 'user' ? 'Phone Number' : 'Client Phone'} <span className="text-red-500">*</span>
@@ -248,6 +298,7 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
           <p className="text-red-500 text-xs mt-1">{errors.clientPhone}</p>
         )}
       </div>
+      )}
 
       {/* Date and Time */}
       <div className="grid grid-cols-2 gap-4">
@@ -311,9 +362,17 @@ const AppointmentForm: React.FC<AppointmentFormProps> = ({
       <div className="flex items-center gap-4 pt-4 border-t border-gray-200">
         <button
           type="submit"
-          className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-sm"
+          disabled={submitting}
+          className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {mode === 'user' ? 'Book Appointment' : 'Schedule Appointment'}
+          {submitting ? (
+            <>
+              <span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+              {isEditMode ? 'Saving...' : mode === 'user' ? 'Booking...' : 'Scheduling...'}
+            </>
+          ) : (
+            isEditMode ? 'Save changes' : mode === 'user' ? 'Book Appointment' : 'Schedule Appointment'
+          )}
         </button>
         {onClose && (
           <button

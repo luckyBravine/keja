@@ -1,11 +1,12 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { BiSolidDashboard } from "react-icons/bi";
 import { MdOutlineCalendarMonth } from "react-icons/md";
 import { MdOutlineHome } from "react-icons/md";
 import { MdOutlinePeople } from "react-icons/md";
+import { MdOutlinePayment } from "react-icons/md";
 import { GrNotification } from "react-icons/gr";
 import { MdOutlinePowerSettingsNew } from "react-icons/md";
 
@@ -16,14 +17,30 @@ export default function DashboardLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationsOpen && !(event.target as Element).closest('.notifications-dropdown')) {
+        setNotificationsOpen(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [notificationsOpen]);
+
+  useEffect(() => {
+    if (pathname === '/dashboard/notifications') setUnreadNotificationCount(0);
+  }, [pathname]);
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: <BiSolidDashboard/> },
     { name: 'My Listings', href: '/dashboard/listings', icon: <MdOutlineHome/> },
     { name: 'Appointments', href: '/dashboard/appointments', icon: <MdOutlineCalendarMonth/> },
     { name: 'My Agents', href: '/dashboard/clients', icon: <MdOutlinePeople/> },
+    { name: 'Subscription', href: '/dashboard/subscription', icon: <MdOutlinePayment/> },
   ];
 
   const handleLogout = () => {
@@ -32,8 +49,10 @@ export default function DashboardLayout({
     router.push('/');
   };
 
-  const handleNotificationClick = () => {
+  const handleNotificationClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setNotificationsOpen(!notificationsOpen);
+    if (!notificationsOpen) setUnreadNotificationCount(0);
   };
 
   return (
@@ -41,7 +60,7 @@ export default function DashboardLayout({
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:h-screen flex flex-col overflow-y-hidden`}>
+      } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:fixed lg:inset-0 lg:h-screen flex flex-col overflow-y-hidden flex-shrink-0`}>
         
         {/* Logo */}
         <div className="flex items-center justify-center h-16 px-4 bg-blue-600 border-b border-gray-200 flex-shrink-0">
@@ -54,7 +73,7 @@ export default function DashboardLayout({
         </div>
         
         {/* Navigation */}
-        <nav className="mt-8 px-4 flex-1 overflow-y-hidden">
+        <nav className="mt-8 px-4 flex-1 overflow-y-auto">
           {navigation.map((item) => (
             <Link
               key={item.name}
@@ -85,7 +104,7 @@ export default function DashboardLayout({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
         {/* Top Navbar */}
         <nav className="bg-white border-b border-gray-200 h-16 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-full">
@@ -124,7 +143,11 @@ export default function DashboardLayout({
                   className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md relative"
                 >
                   <GrNotification className="w-5 h-5" />
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-medium">3</span>
+                  {unreadNotificationCount > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[1rem] h-4 px-1 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-medium">
+                      {unreadNotificationCount > 99 ? '99+' : unreadNotificationCount}
+                    </span>
+                  )}
                 </button>
 
                 {/* Notifications Dropdown */}
@@ -134,13 +157,12 @@ export default function DashboardLayout({
                       <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
                     </div>
                     <div className="max-h-64 overflow-y-auto">
-                      <div className="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer">
-                        <p className="text-sm text-gray-900">New appointment confirmed for 123 Main St</p>
-                        <p className="text-xs text-gray-500 mt-1">2 min ago</p>
+                      <div className="p-6 text-center text-sm text-gray-500">
+                        No notifications yet.
                       </div>
                     </div>
                     <div className="p-4 border-t border-gray-200">
-                      <Link href="/dashboard/notifications" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                      <Link href="/dashboard/notifications" onClick={() => setNotificationsOpen(false)} className="text-sm text-blue-600 hover:text-blue-700 font-medium">
                         View all notifications
                       </Link>
                     </div>

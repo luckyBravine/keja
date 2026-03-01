@@ -1,7 +1,8 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getApiUrl } from '@/app/lib/api';
 
 import { FaApple } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
@@ -10,9 +11,10 @@ import { RiLockPasswordFill } from "react-icons/ri";
 import { CiMail } from "react-icons/ci";
 import { CgProfile } from "react-icons/cg";
 
-
 const RegisterPage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextUrl = searchParams.get('next');
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -21,37 +23,96 @@ const RegisterPage = () => {
     userType: 'user' // 'user' or 'realtor'
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!');
+      setError('Passwords do not match.');
       return;
     }
-
+    setError(null);
     setIsLoading(true);
 
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const names = formData.fullName.trim().split(/\s+/);
+      const first_name = names[0] || '';
+      const last_name = names.slice(1).join(' ') || '';
 
-      // Store user type in localStorage for demo purposes
-      localStorage.setItem('userType', formData.userType);
-      localStorage.setItem('isLoggedIn', 'true');
+      const res = await fetch(getApiUrl('auth/register/'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: formData.email.trim(),
+          email: formData.email.trim(),
+          password: formData.password,
+          password2: formData.confirmPassword,
+          first_name,
+          last_name,
+          role: formData.userType === 'realtor' ? 'agent' : 'client',
+          phone: '',
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const d = data as Record<string, unknown>;
+        let msg = '';
+        const err = d?.error as { message?: string; details?: Record<string, string | string[]> } | undefined;
+        if (err?.details && typeof err.details === 'object') {
+          const first = Object.values(err.details)[0];
+          msg = Array.isArray(first) ? first[0] : typeof first === 'string' ? first : '';
+        }
+        if (!msg && err?.message) msg = err.message;
+        if (!msg && d && !d.error) {
+          const firstKey = Object.keys(d)[0];
+          const val = firstKey ? (d[firstKey] as unknown) : undefined;
+          msg = Array.isArray(val) ? (val[0] as string) : typeof val === 'string' ? val : '';
+        }
+        setError(msg || 'Registration failed.');
+        setIsLoading(false);
+        return;
+      }
+
+      const tokens = (data as { tokens?: { access?: string; refresh?: string } }).tokens;
+      const access = tokens?.access;
+      if (access) {
+        localStorage.setItem('access_token', access);
+        localStorage.setItem('isLoggedIn', 'true');
+        if (tokens.refresh) localStorage.setItem('refresh_token', tokens.refresh);
+      }
+
+      // If new client tried to save a listing before registering, save it now
+      if (formData.userType === 'user' && access) {
+        const pendingSaveId = typeof window !== 'undefined' ? localStorage.getItem('keja_pending_save_listing_id') : null;
+        if (pendingSaveId) {
+          try {
+            await fetch(getApiUrl('listings/saved/'), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${access}` },
+              body: JSON.stringify({ listing_id: Number(pendingSaveId) }),
+            });
+          } catch (_) { /* ignore */ }
+          localStorage.removeItem('keja_pending_save_listing_id');
+        }
+      }
 
       if (formData.userType === 'realtor') {
         router.push('/admin/dashboard');
       } else {
-        router.push('/login');
+        const safe = nextUrl && nextUrl.startsWith('/dashboard');
+        router.push(safe ? nextUrl : '/dashboard');
       }
-    } catch (error) {
-      console.error('Registration error:', error);
-    } finally {
+      // Keep loading true until navigation completes
+    } catch (err) {
+      console.error('Registration error:', err);
+      setError('Network error. Is the backend running?');
       setIsLoading(false);
     }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (error) setError(null);
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -93,6 +154,11 @@ const RegisterPage = () => {
 
             {/* Register Form */}
             <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
+              {error && (
+                <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
               {/* Full Name Field */}
               <div>
                 <label className="block text-sm sm:text-base lg:text-lg font-semibold text-gray-700 mb-2 sm:mb-3">Full Name</label>

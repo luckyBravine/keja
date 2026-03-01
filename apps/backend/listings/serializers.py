@@ -1,14 +1,23 @@
 from rest_framework import serializers
-from .models import Listing, ListingImage
+from .models import Listing, ListingImage, SavedListing
 
 
 class ListingImageSerializer(serializers.ModelSerializer):
-    """Serializer for listing images"""
+    """Serializer for listing images; returns absolute image URL when request is available."""
+    image = serializers.SerializerMethodField()
     
     class Meta:
         model = ListingImage
         fields = ['id', 'image', 'caption', 'is_primary', 'order', 'created_at']
         read_only_fields = ['id', 'created_at']
+    
+    def get_image(self, obj):
+        if not obj.image:
+            return None
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(obj.image.url)
+        return obj.image.url
 
 
 class ListingSerializer(serializers.ModelSerializer):
@@ -20,6 +29,7 @@ class ListingSerializer(serializers.ModelSerializer):
     agent_phone = serializers.CharField(source='agent.phone', read_only=True)
     price_per_sqft = serializers.ReadOnlyField()
     is_available = serializers.ReadOnlyField()
+    is_saved = serializers.SerializerMethodField()
     
     class Meta:
         model = Listing
@@ -29,10 +39,17 @@ class ListingSerializer(serializers.ModelSerializer):
             'price', 'bedrooms', 'bathrooms', 'square_feet', 'lot_size', 'year_built',
             'parking_spaces', 'has_garage', 'has_pool', 'has_garden',
             'agent', 'agent_name', 'agent_email', 'agent_phone',
-            'images', 'price_per_sqft', 'is_available',
+            'images', 'price_per_sqft', 'is_available', 'is_saved',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'agent', 'created_at', 'updated_at']
+    
+    def get_is_saved(self, obj):
+        """True if current user has saved this listing"""
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return SavedListing.objects.filter(user=request.user, listing=obj).exists()
+        return False
     
     def get_agent_name(self, obj):
         """Get agent's full name"""
@@ -84,13 +101,14 @@ class ListingListSerializer(serializers.ModelSerializer):
     agent_name = serializers.SerializerMethodField()
     primary_image = serializers.SerializerMethodField()
     image_count = serializers.SerializerMethodField()
+    is_saved = serializers.SerializerMethodField()
     
     class Meta:
         model = Listing
         fields = [
-            'id', 'title', 'property_type', 'status',
+            'id', 'title', 'address', 'property_type', 'status',
             'city', 'state', 'price', 'bedrooms', 'bathrooms', 'square_feet',
-            'agent_name', 'primary_image', 'image_count', 'created_at'
+            'agent_name', 'primary_image', 'image_count', 'is_saved', 'created_at'
         ]
     
     def get_agent_name(self, obj):
@@ -122,6 +140,13 @@ class ListingListSerializer(serializers.ModelSerializer):
         """Get total number of images"""
         return obj.images.count()
 
+    def get_is_saved(self, obj):
+        """True if current user has saved this listing"""
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return SavedListing.objects.filter(user=request.user, listing=obj).exists()
+        return False
+
 
 class ListingCreateUpdateSerializer(serializers.ModelSerializer):
     """Serializer for creating and updating listings"""
@@ -146,3 +171,27 @@ class ListingCreateUpdateSerializer(serializers.ModelSerializer):
         if value <= 0:
             raise serializers.ValidationError("Square feet must be greater than zero.")
         return value
+
+
+class SavedListingSerializer(serializers.ModelSerializer):
+    """Serializer for saved listing (returns listing detail)"""
+    listing = ListingSerializer(read_only=True)
+    listing_id = serializers.IntegerField(write_only=True, required=True)
+
+    class Meta:
+        model = SavedListing
+        fields = ['id', 'listing', 'listing_id', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+    def validate_listing_id(self, value):
+        """Ensure listing exists and is not deleted"""
+        if not Listing.objects.filter(pk=value, is_deleted=False).exists():
+            raise serializers.ValidationError("Listing not found or unavailable.")
+        return value
+
+    def create(self, validated_data):
+        listing_id = validated_data.pop('listing_id')
+        listing = Listing.objects.get(pk=listing_id)
+        user = self.context['request'].user
+        saved, _ = SavedListing.objects.get_or_create(user=user, listing=listing)
+        return saved

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { getApiUrl, getAuthHeaders, getMediaUrl } from '@/app/lib/api';
 
 interface ListingCardProps {
   id: string | number;
@@ -13,76 +14,118 @@ interface ListingCardProps {
   beds?: number;
   baths?: number;
   sqft?: number;
+  is_saved?: boolean;
+  onSavedChange?: (saved: boolean) => void;
+  /** When provided (e.g. on dashboard), use button instead of Link to login */
+  onBookAppointment?: (e: React.MouseEvent) => void;
+  /** When provided, clicking the card (except like/CTA) goes to this URL */
+  detailUrl?: string;
 }
 
-const ListingCard: React.FC<ListingCardProps> = ({ id, title, price, image, location, beds, baths, sqft }) => {
+const ListingCard: React.FC<ListingCardProps> = ({
+  id,
+  title,
+  price,
+  image,
+  location,
+  beds,
+  baths,
+  sqft,
+  is_saved: isSavedProp,
+  onSavedChange,
+  onBookAppointment,
+  detailUrl,
+}) => {
   const router = useRouter();
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(Boolean(isSavedProp));
+  const [saving, setSaving] = useState(false);
 
-  // Check if this listing is already liked on component mount
+  const isLoggedIn =
+    typeof window !== 'undefined' && !!localStorage.getItem('access_token');
+
   useEffect(() => {
-    const likedListings = JSON.parse(localStorage.getItem('likedListings') || '[]');
-    setIsLiked(likedListings.includes(id));
-  }, [id]);
+    if (isSavedProp !== undefined) setIsLiked(isSavedProp);
+    else if (!isLoggedIn) {
+      const likedListings = JSON.parse(localStorage.getItem('likedListings') || '[]');
+      setIsLiked(likedListings.includes(id));
+    }
+  }, [id, isSavedProp, isLoggedIn]);
 
-  const handleLike = (e: React.MouseEvent) => {
+  const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    // Get current liked listings
-    const likedListings = JSON.parse(localStorage.getItem('likedListings') || '[]');
-    
-    if (isLiked) {
-      // Remove from likes
-      const updatedLikes = likedListings.filter((listingId: number) => listingId !== id);
-      localStorage.setItem('likedListings', JSON.stringify(updatedLikes));
-      setIsLiked(false);
-    } else {
-      // Add to likes and store listing data for dashboard
-      const listingData = {
-        id,
-        title,
-        price,
-        image,
-        location,
-        beds,
-        baths,
-        sqft,
-        likedAt: new Date().toISOString()
-      };
-      
-      // Store the liked listing data
-      const likedListingsData = JSON.parse(localStorage.getItem('likedListingsData') || '[]');
-      likedListingsData.push(listingData);
-      localStorage.setItem('likedListingsData', JSON.stringify(likedListingsData));
-      
-      // Update likes array
-      likedListings.push(id);
-      localStorage.setItem('likedListings', JSON.stringify(likedListings));
-      setIsLiked(true);
-      
-      // Redirect to login with the liked listing info
-      localStorage.setItem('pendingLike', JSON.stringify(listingData));
-      router.push('/login');
+
+    if (isLoggedIn) {
+      setSaving(true);
+      try {
+        if (isLiked) {
+          const url = getApiUrl(`listings/saved/unsave/?listing_id=${id}`);
+          const res = await fetch(url, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+          });
+          if (res.ok) {
+            setIsLiked(false);
+            onSavedChange?.(false);
+          }
+        } else {
+          const url = getApiUrl('listings/saved/');
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ listing_id: id }),
+          });
+          if (res.ok) {
+            setIsLiked(true);
+            onSavedChange?.(true);
+          }
+        }
+      } finally {
+        setSaving(false);
+      }
+      return;
     }
+
+    // Not logged in: remember which listing they want to save, then send to login
+    if (isLiked) {
+      const likedListings = JSON.parse(localStorage.getItem('likedListings') || '[]');
+      const updated = likedListings.filter((listingId: number) => listingId !== id);
+      localStorage.setItem('likedListings', JSON.stringify(updated));
+      setIsLiked(false);
+      return;
+    }
+    localStorage.setItem('keja_pending_save_listing_id', String(id));
+    router.push('/login?next=/dashboard');
+  };
+
+  const handleCardClick = () => {
+    if (detailUrl) router.push(detailUrl);
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 cursor-pointer">
+    <div
+      className={`bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 ${detailUrl ? 'cursor-pointer' : ''}`}
+      onClick={detailUrl ? handleCardClick : undefined}
+      onKeyDown={detailUrl ? (e) => { if (e.key === 'Enter') handleCardClick(); } : undefined}
+      role={detailUrl ? 'button' : undefined}
+      tabIndex={detailUrl ? 0 : undefined}
+    >
       <div className="relative">
         <Image 
-          src={image} 
+          src={getMediaUrl(image) || image} 
           alt={`${title} property in ${location}`} 
           width={400}
           height={256}
           className="w-full h-48 sm:h-56 md:h-64 object-cover"
         />
         <span className="absolute top-3 left-3 sm:top-4 sm:left-4 text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-full bg-blue-600 text-white font-medium">Featured</span>
-        <button 
+        <button
+          type="button"
           onClick={handleLike}
-          className={`absolute top-3 right-3 sm:top-4 sm:right-4 h-8 w-8 sm:h-10 sm:w-10 rounded-full grid place-items-center transition-colors ${
-            isLiked 
-              ? 'bg-red-500 text-white hover:bg-red-600' 
+          disabled={saving}
+          className={`absolute top-3 right-3 sm:top-4 sm:right-4 h-8 w-8 sm:h-10 sm:w-10 rounded-full grid place-items-center transition-colors disabled:opacity-70 ${
+            isLiked
+              ? 'bg-red-500 text-white hover:bg-red-600'
               : 'bg-white/90 hover:bg-white'
           }`}
         >
@@ -102,9 +145,19 @@ const ListingCard: React.FC<ListingCardProps> = ({ id, title, price, image, loca
           <span className="flex items-center gap-1"><span>🛁</span><span className="font-medium">{baths ?? '-'} baths</span></span>
           <span className="flex items-center gap-1"><span>📐</span><span className="font-medium">{sqft ?? '-'} sqft</span></span>
         </div>
-        <Link href="/login" className="mt-4 sm:mt-5 w-full bg-blue-600 text-white py-2 sm:py-2.5 rounded-lg text-sm sm:text-base font-semibold hover:bg-blue-700 transition-colors block text-center">
-          Book Appointment
-        </Link>
+        {onBookAppointment ? (
+          <button
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onBookAppointment(e); }}
+            className="mt-4 sm:mt-5 w-full bg-blue-600 text-white py-2 sm:py-2.5 rounded-lg text-sm sm:text-base font-semibold hover:bg-blue-700 transition-colors block text-center"
+          >
+            Book Appointment
+          </button>
+        ) : (
+          <Link href="/login" onClick={(e) => e.stopPropagation()} className="mt-4 sm:mt-5 w-full bg-blue-600 text-white py-2 sm:py-2.5 rounded-lg text-sm sm:text-base font-semibold hover:bg-blue-700 transition-colors block text-center">
+            Book Appointment
+          </Link>
+        )}
       </div>
     </div>
   );

@@ -1,11 +1,16 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { apiFetch, getApiUrl, getAuthHeaders, getMediaUrl } from '@/app/lib/api';
+import { useUnsavedChanges } from '@/app/hooks/useUnsavedChanges';
+import UnsavedChangesPrompt from '@/app/components/UnsavedChangesPrompt';
 
 const UserSettings: React.FC = () => {
   const [formData, setFormData] = useState({
-    fullName: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '+254 712 345 678',
+    firstName: '',
+    lastName: '',
+    fullName: '',
+    email: '',
+    phone: '',
     location: 'Nairobi, Kenya',
     notifications: {
       email: true,
@@ -19,8 +24,49 @@ const UserSettings: React.FC = () => {
     },
   });
 
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [activeSection, setActiveSection] = useState<'profile' | 'notifications' | 'preferences' | 'security'>('profile');
   const [isSaving, setIsSaving] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const initialProfileRef = useRef<{ firstName: string; lastName: string; email: string; phone: string } | null>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      setProfileLoading(true);
+      const res = await apiFetch<{ first_name?: string; last_name?: string; email?: string; phone?: string; avatar?: string | null }>('auth/profile/');
+      if (res.ok && res.data) {
+        const d = res.data;
+        const profile = {
+          firstName: d.first_name ?? '',
+          lastName: d.last_name ?? '',
+          email: d.email ?? '',
+          phone: d.phone ?? '',
+        };
+        initialProfileRef.current = profile;
+        setFormData((prev) => ({
+          ...prev,
+          ...profile,
+          fullName: [d.first_name, d.last_name].filter(Boolean).join(' ') || prev.fullName,
+        }));
+        if (d.avatar) setAvatarUrl(getMediaUrl(d.avatar) || d.avatar);
+      }
+      setProfileLoading(false);
+    };
+    load();
+  }, []);
+
+  const profileDirty =
+    initialProfileRef.current != null &&
+    (formData.firstName !== initialProfileRef.current.firstName ||
+      formData.lastName !== initialProfileRef.current.lastName ||
+      formData.email !== initialProfileRef.current.email ||
+      formData.phone !== initialProfileRef.current.phone ||
+      !!avatarFile);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -40,21 +86,110 @@ const UserSettings: React.FC = () => {
     }));
   };
 
-  const handleSave = async () => {
+  const handlePropertyTypeChange = (type: string) => {
+    setFormData(prev => ({
+      ...prev,
+      preferences: {
+        ...prev.preferences,
+        propertyTypes: prev.preferences.propertyTypes.includes(type)
+          ? prev.preferences.propertyTypes.filter((t) => t !== type)
+          : [...prev.preferences.propertyTypes, type],
+      },
+    }));
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    setAvatarFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setAvatarPreview(reader.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleSaveProfile = async () => {
     setIsSaving(true);
-    // Simulate API call
+    setMessage(null);
+    try {
+      let res: { ok: boolean; error?: string; data?: { avatar?: string } };
+      if (avatarFile) {
+        const formDataToSend = new FormData();
+        formDataToSend.append('first_name', formData.firstName);
+        formDataToSend.append('last_name', formData.lastName);
+        formDataToSend.append('email', formData.email);
+        formDataToSend.append('phone', formData.phone);
+        formDataToSend.append('avatar', avatarFile);
+        const headers = getAuthHeaders();
+        delete (headers as Record<string, unknown>)['Content-Type'];
+        const r = await fetch(getApiUrl('auth/profile/'), {
+          method: 'PATCH',
+          headers,
+          body: formDataToSend,
+        });
+        const data = await r.json().catch(() => ({}));
+        res = { ok: r.ok, error: (data as { error?: { message?: string } }).error?.message, data };
+        if (res.ok && (data as { avatar?: string }).avatar) {
+          setAvatarUrl(getMediaUrl((data as { avatar: string }).avatar) || (data as { avatar: string }).avatar);
+          setAvatarFile(null);
+          setAvatarPreview(null);
+        }
+      } else {
+        res = await apiFetch('auth/profile/', {
+          method: 'PATCH',
+          body: JSON.stringify({
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            email: formData.email,
+            phone: formData.phone,
+          }),
+        });
+      }
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'Profile saved successfully.' });
+        if (initialProfileRef.current) {
+          initialProfileRef.current = {
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: formData.email,
+            phone: formData.phone,
+          };
+        }
+      } else {
+        setMessage({ type: 'error', text: res.error || 'Failed to save profile.' });
+        throw new Error('Save failed');
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const profileUnsaved = useUnsavedChanges(activeSection === 'profile' && profileDirty, { onSave: handleSaveProfile });
+
+  const handleSave = async () => {
+    if (activeSection === 'profile') {
+      await handleSaveProfile();
+      return;
+    }
+    setIsSaving(true);
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsSaving(false);
-    alert('Settings saved successfully!');
+    setMessage({ type: 'success', text: 'Settings saved successfully!' });
   };
 
   return (
-    <div className="space-y-6">
+      <div className="space-y-6">
       {/* Page Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
         <p className="mt-2 text-gray-600">Manage your account settings and preferences</p>
       </div>
+
+      {message && (
+        <div className={`p-4 rounded-lg text-sm ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-700'}`}>
+          {message.text}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Sidebar Navigation */}
@@ -72,7 +207,14 @@ const UserSettings: React.FC = () => {
                 Profile Information
               </button>
               <button
-                onClick={() => setActiveSection('notifications')}
+                onClick={async () => {
+                  if (activeSection === 'profile' && profileDirty) {
+                    const ok = await profileUnsaved.confirmLeave();
+                    if (ok) setActiveSection('notifications');
+                  } else {
+                    setActiveSection('notifications');
+                  }
+                }}
                 className={`w-full text-left px-4 py-3 rounded-lg font-semibold text-sm transition-colors ${
                   activeSection === 'notifications'
                     ? 'bg-blue-600 text-white'
@@ -82,7 +224,14 @@ const UserSettings: React.FC = () => {
                 Notifications
               </button>
               <button
-                onClick={() => setActiveSection('preferences')}
+                onClick={async () => {
+                  if (activeSection === 'profile' && profileDirty) {
+                    const ok = await profileUnsaved.confirmLeave();
+                    if (ok) setActiveSection('preferences');
+                  } else {
+                    setActiveSection('preferences');
+                  }
+                }}
                 className={`w-full text-left px-4 py-3 rounded-lg font-semibold text-sm transition-colors ${
                   activeSection === 'preferences'
                     ? 'bg-blue-600 text-white'
@@ -92,7 +241,14 @@ const UserSettings: React.FC = () => {
                 Preferences
               </button>
               <button
-                onClick={() => setActiveSection('security')}
+                onClick={async () => {
+                  if (activeSection === 'profile' && profileDirty) {
+                    const ok = await profileUnsaved.confirmLeave();
+                    if (ok) setActiveSection('security');
+                  } else {
+                    setActiveSection('security');
+                  }
+                }}
                 className={`w-full text-left px-4 py-3 rounded-lg font-semibold text-sm transition-colors ${
                   activeSection === 'security'
                     ? 'bg-blue-600 text-white'
@@ -112,60 +268,94 @@ const UserSettings: React.FC = () => {
             {activeSection === 'profile' && (
               <div className="space-y-6">
                 <h2 className="text-xl font-bold text-gray-900">Profile Information</h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                {profileLoading ? (
+                  <p className="text-gray-500">Loading profile...</p>
+                ) : (
+                  <>
+                  <div className="flex items-center gap-6">
+                    <div className="relative">
+                      <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-200 border-2 border-gray-300 flex items-center justify-center">
+                        {avatarPreview ? (
+                          <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
+                        ) : avatarUrl ? (
+                          <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-2xl font-bold text-gray-500">
+                            {(formData.firstName?.[0] || formData.lastName?.[0] || '?').toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarChange}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="mt-2 w-full text-sm font-medium text-blue-600 hover:text-blue-800"
+                      >
+                        {avatarUrl || avatarPreview ? 'Change photo' : 'Upload photo'}
+                      </button>
+                    </div>
+                    <p className="text-sm text-gray-500">JPG, PNG or WebP. Max 5MB.</p>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">First Name</label>
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Last Name</label>
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Location</label>
+                      <input
+                        type="text"
+                        name="location"
+                        value={formData.location}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Location
-                    </label>
-                    <input
-                      type="text"
-                      name="location"
-                      value={formData.location}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
+                  </>
+                )}
               </div>
             )}
 
@@ -251,6 +441,7 @@ const UserSettings: React.FC = () => {
                           <input
                             type="checkbox"
                             checked={formData.preferences.propertyTypes.includes(type)}
+                            onChange={() => handlePropertyTypeChange(type)}
                             className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
                           />
                           <span className="text-gray-900">{type}</span>
@@ -335,6 +526,16 @@ const UserSettings: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <UnsavedChangesPrompt
+        open={profileUnsaved.showPrompt}
+        onSave={profileUnsaved.promptHandlers.onSave}
+        onDiscard={profileUnsaved.promptHandlers.onDiscard}
+        onCancel={profileUnsaved.promptHandlers.onCancel}
+        saving={profileUnsaved.promptHandlers.saving}
+        title="Unsaved profile changes"
+        message="You have unsaved changes. Save before leaving?"
+      />
     </div>
   );
 };
